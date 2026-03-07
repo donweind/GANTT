@@ -302,7 +302,7 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-[#f1f5f9] p-4 md:p-6 font-sans text-slate-800">
-      <div className="max-w-[1400px] mx-auto space-y-6">
+      <div className="max-w-[1600px] w-[98%] mx-auto space-y-6">
         
         {/* Cabecera Corporativa SOFTYS */}
         <header className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 relative overflow-hidden">
@@ -339,10 +339,11 @@ export default function App() {
           </div>
         </header>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* MODIFICACIÓN DE GRILLA: 4 columnas en total (3 para Gantt, 1 para Detalles) = 75% / 25% */}
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 md:gap-6">
           
-          {/* ZONA DEL GANTT */}
-          <div className="lg:col-span-2 space-y-4">
+          {/* ZONA DEL GANTT (Ahora ocupa 3 de 4 columnas) */}
+          <div className="lg:col-span-3 space-y-4">
             
             {/* Filtros */}
             <div className="bg-white p-3 rounded-2xl shadow-sm border border-slate-200 flex flex-wrap gap-2">
@@ -434,14 +435,14 @@ export default function App() {
 
                             {/* Barra de Progreso */}
                             <div 
-                              className={`absolute h-7 rounded shadow-sm flex items-center px-2 text-[10px] font-black text-white transition-all duration-300 
+                              className={`absolute h-7 rounded shadow-sm flex items-center justify-center text-[10px] font-black text-white transition-all duration-300 
                                 ${workColor} ${isSelected ? 'ring-2 ring-offset-2 ring-slate-400 shadow-lg scale-[1.01] z-30' : 'opacity-90 hover:opacity-100 z-10'}`}
                               style={{ 
                                 left: position.left, 
                                 width: position.width,
                                 top: '50%',
                                 marginTop: '-14px',
-                                minWidth: '32px' 
+                                minWidth: '38px' // Asegura que "100%" siempre tenga espacio
                               }}
                             >
                               {/* Sombreado de progreso */}
@@ -450,8 +451,8 @@ export default function App() {
                                 style={{ width: `${task.progress}%` }}
                               ></div>
                               
-                              {/* Textos dentro de la barra */}
-                              <span className="relative z-10 truncate drop-shadow-md">
+                              {/* Textos dentro de la barra adaptables */}
+                              <span className="relative z-10 whitespace-nowrap drop-shadow-[0_1px_1px_rgba(0,0,0,0.8)] px-1">
                                 {task.progress}%
                               </span>
 
@@ -472,7 +473,7 @@ export default function App() {
             </div>
           </div>
 
-          {/* PANEL LATERAL DE DETALLES */}
+          {/* PANEL LATERAL DE DETALLES (Ahora ocupa 1 de 4 columnas, es más angosto) */}
           <div className="lg:col-span-1">
             {renderTaskDetails()}
           </div>
