@@ -9,10 +9,10 @@ const WORK_TYPES = {
   TANQUES: { id: 'tanques', label: 'Tanques e Instalaciones', color: 'bg-blue-600', icon: Database },
   CALDERA: { id: 'caldera', label: 'Caldera', color: 'bg-orange-500', icon: Flame },
   QUEMADOR: { id: 'quemador', label: 'Quemador de Capota', color: 'bg-purple-600', icon: Target },
-  GLP: { id: 'glp', label: 'Ruta Crítica Habilitar GLP', color: 'bg-red-600', icon: AlertOctagon },
+  GLP: { id: 'glp', label: 'Ruta Crítica GLP', color: 'bg-red-600', icon: AlertOctagon },
 };
 
-// --- DATA MASTER: TRANSCRIPCIÓN TOTAL DE LOS 3 EXCEL (Sin agrupaciones ni eliminaciones) ---
+// --- DATA MASTER: TRANSCRIPCIÓN TOTAL ---
 const INITIAL_TASKS = [
   // ==================== FRENTE 1: TANQUES E INSTALACIONES ====================
   // Preparación
@@ -107,7 +107,6 @@ const INITIAL_TASKS = [
   { id: 311, type: 'quemador', subType: 'Seguridad', title: 'Pruebas de operación.', progress: 0, assignee: 'Javier', startDate: '2026-03-11T08:00:00', endDate: '2026-03-11T18:00:00' },
 
   // ==================== FRENTE 4: RUTA CRÍTICA GLP ====================
-  // (Sin "Homologación y Cotización" según solicitud previa)
   { id: 403, type: 'glp', subType: 'Requisitos y Seguridad', title: 'Alinear requerimientos de SHE para ingreso a planta', progress: 100, assignee: 'Juan Carlos/Guillermo Lazo', startDate: '2026-03-03T08:00:00', endDate: '2026-03-03T18:00:00' },
   { id: 404, type: 'glp', subType: 'Requisitos y Seguridad', title: 'Mantenimiento del sistema contra incendio (lijado, pintura)', progress: 100, assignee: 'David Asevedo', startDate: '2026-03-03T08:00:00', endDate: '2026-03-03T19:00:00' },
   { id: 405, type: 'glp', subType: 'Requisitos y Seguridad', title: 'Reemplazo de señaletica de seguridad', progress: 100, assignee: 'Victor Mendoza', startDate: '2026-03-03T08:00:00', endDate: '2026-03-05T18:00:00' },
@@ -157,11 +156,6 @@ const formatDate = (dateString) => {
   return date.toLocaleDateString('es-ES', { weekday: 'short', day: '2-digit', month: 'short' });
 };
 
-const formatTime = (dateString) => {
-  const date = new Date(dateString);
-  return date.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
-};
-
 export default function App() {
   const [selectedTask, setSelectedTask] = useState(INITIAL_TASKS.find(t=> t.progress > 0 && t.progress < 100) || INITIAL_TASKS[0]);
   const [activeMainFilter, setActiveMainFilter] = useState('all');
@@ -169,7 +163,6 @@ export default function App() {
 
   const timelineDays = ['03 Mar', '04 Mar', '05 Mar', '06 Mar', '07 Mar', '08 Mar', '09 Mar', '10 Mar', '11 Mar'];
 
-  // Obtener SubFiltros Dinámicos según la categoría principal seleccionada
   const availableSubFilters = useMemo(() => {
     if (activeMainFilter === 'all') return [];
     const tasksForMain = INITIAL_TASKS.filter(task => task.type === activeMainFilter);
@@ -181,23 +174,29 @@ export default function App() {
   const filteredTasks = useMemo(() => {
     let tasks = INITIAL_TASKS;
     
-    // 1. Filtro Principal
     if (activeMainFilter !== 'all') {
       tasks = tasks.filter(task => task.type === activeMainFilter);
-      // 2. Filtro Secundario (Si aplica)
       if (activeSubFilter !== 'all') {
         tasks = tasks.filter(task => task.subType === activeSubFilter);
       }
     }
     
-    // Ordenar cronológicamente para mantener el flujo
     return tasks.sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
   }, [activeMainFilter, activeSubFilter]);
 
-  // Manejador del filtro principal para resetear el secundario
+  // --- CÁLCULOS DINÁMICOS PARA LAS TARJETAS DE RESUMEN ---
+  const dynamicTotalActivities = filteredTasks.length;
+  const dynamicAverageProgress = dynamicTotalActivities > 0 
+    ? Math.round(filteredTasks.reduce((acc, t) => acc + t.progress, 0) / dynamicTotalActivities)
+    : 0;
+  
+  const progressLabelText = activeMainFilter === 'all' 
+    ? 'AVANCE GLOBAL' 
+    : `AVANCE ${WORK_TYPES[activeMainFilter.toUpperCase()].label.toUpperCase()}`;
+
   const handleMainFilterChange = (filterId) => {
     setActiveMainFilter(filterId);
-    setActiveSubFilter('all'); // Resetea el subfiltro al cambiar de frente
+    setActiveSubFilter('all'); 
   };
 
   const calculatePosition = (startDate, endDate) => {
@@ -295,8 +294,6 @@ export default function App() {
     );
   };
 
-  // --- LÓGICA DE RENDERIZADO CON AGRUPACIÓN VISUAL ---
-  // No agrupamos los datos, pero visualmente colocamos un separador para saber a qué SubCategoría pertenecen.
   let lastSubTypeRendered = null;
 
   return (
@@ -315,18 +312,23 @@ export default function App() {
               <h2 className="text-xl font-bold text-slate-700">Plan Maestro de Parada (Control Detallado)</h2>
             </div>
             
-            <div className="flex gap-3">
-              <div className="text-center px-6 py-3 bg-slate-50 rounded-xl border border-slate-200 shadow-sm">
-                <span className="block text-2xl font-black text-slate-600">
-                  {INITIAL_TASKS.length}
+            {/* TARJETAS DE RESUMEN DINÁMICAS (Diseño actualizado según imagen) */}
+            <div className="flex gap-4">
+              <div className="flex flex-col justify-center items-center px-6 py-4 bg-white rounded-xl border border-slate-200 shadow-sm min-w-[150px]">
+                <span className="block text-3xl font-black text-slate-700 leading-none">
+                  {dynamicTotalActivities}
                 </span>
-                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Actividades</span>
+                <span className="text-[11px] font-bold text-slate-500 uppercase tracking-widest mt-2">
+                  Actividades
+                </span>
               </div>
-              <div className="text-center px-6 py-3 bg-emerald-50 rounded-xl border border-emerald-100 shadow-sm">
-                <span className="block text-2xl font-black text-emerald-600">
-                  {Math.round(INITIAL_TASKS.reduce((acc, t) => acc + t.progress, 0) / INITIAL_TASKS.length)}%
+              <div className="flex flex-col justify-center items-center px-6 py-4 bg-[#f0fdf4] rounded-xl border border-[#dcfce7] shadow-sm min-w-[170px]">
+                <span className="block text-3xl font-black text-[#166534] leading-none">
+                  {dynamicAverageProgress}%
                 </span>
-                <span className="text-[10px] font-bold text-emerald-800 uppercase tracking-widest">Avance Global</span>
+                <span className="text-[11px] font-bold text-[#166534] uppercase tracking-widest mt-2 truncate max-w-full">
+                  {progressLabelText}
+                </span>
               </div>
             </div>
           </div>
@@ -359,7 +361,7 @@ export default function App() {
               ))}
             </div>
 
-            {/* FILTROS SECUNDARIOS (Dinámicos: Solo aparecen si hay un Frente seleccionado) */}
+            {/* FILTROS SECUNDARIOS */}
             {activeMainFilter !== 'all' && availableSubFilters.length > 0 && (
               <div className="bg-white px-4 py-2 rounded-xl shadow-sm border border-slate-200 flex flex-wrap items-center gap-2 animate-fade-in">
                 <Filter className="w-4 h-4 text-slate-400 mr-1" />
@@ -388,7 +390,6 @@ export default function App() {
               <div className="overflow-x-auto">
                 <div className="min-w-[1000px]">
                   
-                  {/* Cabecera del Gantt */}
                   <div className="flex border-b border-slate-200 bg-slate-50 text-[10px] font-black text-slate-500 uppercase tracking-widest sticky top-0 z-30 shadow-sm">
                     <div className="w-[380px] p-4 border-r border-slate-200 flex items-center bg-slate-50 sticky left-0 z-20">
                       Listado Completo de Tareas ({filteredTasks.length})
@@ -403,7 +404,6 @@ export default function App() {
                     </div>
                   </div>
 
-                  {/* Cuerpo del Gantt */}
                   <div className="overflow-y-auto max-h-[700px] relative pb-20">
                     
                     <div className="absolute top-0 bottom-0 border-l-2 border-amber-500 z-0 pointer-events-none" 
@@ -418,7 +418,6 @@ export default function App() {
                       const isGLP = task.type === 'glp';
                       const status = getStatus(task.progress);
                       
-                      // Lógica de separador visual por subCategoría (solo visible en "Todas las subcategorías")
                       let renderSeparator = false;
                       if (activeSubFilter === 'all' && task.subType !== lastSubTypeRendered) {
                         renderSeparator = true;
@@ -427,7 +426,6 @@ export default function App() {
 
                       return (
                         <React.Fragment key={task.id}>
-                          {/* Separador Visual de SubCategoría */}
                           {renderSeparator && (
                             <div className="flex border-b border-slate-200 bg-slate-100/70">
                               <div className="w-[380px] px-4 py-2 border-r border-slate-200 sticky left-0 z-20 bg-slate-100 text-[10px] font-black uppercase text-slate-500 tracking-widest">
@@ -437,7 +435,6 @@ export default function App() {
                             </div>
                           )}
 
-                          {/* Fila Individual de Tarea */}
                           <div 
                             onClick={() => setSelectedTask(task)}
                             className={`flex border-b border-slate-100 cursor-pointer transition-colors hover:bg-slate-50 group relative z-10
