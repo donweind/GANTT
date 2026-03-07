@@ -18,17 +18,6 @@ const INITIAL_TASKS = [
   // FRENTE 4: RUTA CRÍTICA GLP (NUEVO)
   // ==========================================
   {
-    id: 101,
-    title: 'Homologación & Cotización LINGAS/TILGAS',
-    type: 'glp',
-    startDate: '2026-03-03T08:00:00',
-    endDate: '2026-03-03T18:00:00',
-    progress: 100,
-    status: 'completado',
-    assignee: 'Raul Flor / Erick Y.',
-    description: 'Homologar proveedor LINGAS/TILGAS. Cotización formal y generación de órdenes de compra.',
-  },
-  {
     id: 102,
     title: 'Alinear requerimientos SHE',
     type: 'glp',
@@ -138,6 +127,9 @@ const INITIAL_TASKS = [
     id: 2, title: 'Preparación de líneas', type: 'tanques', startDate: '2026-03-06T08:00:00', endDate: '2026-03-06T15:00:00', progress: 100, status: 'completado', assignee: 'Diego Vargas', description: 'Revisión exhaustiva, pulido y preparación de las líneas que han sido desmontadas.'
   },
   {
+    id: 3, title: 'Montaje de repuestos', type: 'tanques', startDate: '2026-03-06T15:00:00', endDate: '2026-03-06T17:00:00', progress: 100, status: 'completado', assignee: 'Diego Vargas', description: 'Revisión, validación e inicio de montaje de repuestos solicitados.'
+  },
+  {
     id: 4, title: 'Mantenimiento Tanque 1', type: 'tanques', startDate: '2026-03-06T17:00:00', endDate: '2026-03-06T23:00:00', progress: 100, status: 'completado', assignee: 'Diego Vargas', description: 'Trabajos de soldadura interna y externa. Además, montaje de válvulas en la línea del tanque 1.'
   },
   {
@@ -159,7 +151,7 @@ const INITIAL_TASKS = [
     id: 13, title: 'Pruebas Elem. Seguridad', type: 'caldera', startDate: '2026-03-10T14:00:00', endDate: '2026-03-11T14:00:00', progress: 0, status: 'pendiente', assignee: 'Christian', description: 'Condición: Se debe ejecutar apenas se tenga habilitada la línea de gas.'
   },
   {
-    id: 14, title: 'Mantenimiento Capota', type: 'quemador', startDate: '2026-03-06T08:00:00', endDate: '2026-03-06T18:00:00', progress: 100, status: 'completado', assignee: 'Javier', description: 'Trabajos programados ejecutados en el Quemador de Capota.'
+    id: 14, title: 'Mantenimiento Capota', type: 'quemador', startDate: '2026-03-07T08:00:00', endDate: '2026-03-07T18:00:00', progress: 0, status: 'pendiente', assignee: 'Javier', description: 'Trabajos programados a ejecutarse en el Quemador de Capota.'
   }
 ];
 
