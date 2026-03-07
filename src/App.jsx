@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Calendar, Clock, Database, Flame, Target, AlertOctagon, CheckCircle2, Factory, Filter } from 'lucide-react';
+import { Calendar, Clock, Database, Flame, Target, CheckCircle2, Factory, Filter } from 'lucide-react';
 
 // --- CONFIGURACIÓN DE FECHAS ---
 const PROJECT_START = '2026-03-03T00:00:00';
@@ -9,10 +9,9 @@ const WORK_TYPES = {
   TANQUES: { id: 'tanques', label: 'Tanques e Instalaciones', color: 'bg-blue-600', icon: Database },
   CALDERA: { id: 'caldera', label: 'Caldera', color: 'bg-orange-500', icon: Flame },
   QUEMADOR: { id: 'quemador', label: 'Quemador de Capota', color: 'bg-purple-600', icon: Target },
-  GLP: { id: 'glp', label: 'Ruta Crítica GLP', color: 'bg-red-600', icon: AlertOctagon },
 };
 
-// --- DATA MASTER: TRANSCRIPCIÓN TOTAL ---
+// --- DATA MASTER: FRENTES DE PARADA ---
 const INITIAL_TASKS = [
   // ==================== FRENTE 1: TANQUES E INSTALACIONES ====================
   // Preparación
@@ -105,43 +104,6 @@ const INITIAL_TASKS = [
   { id: 309, type: 'quemador', subType: 'Seguridad', title: 'Revisión de sistemas de emergencia.', progress: 0, assignee: 'Javier', startDate: '2026-03-07T08:00:00', endDate: '2026-03-11T18:00:00' },
   { id: 310, type: 'quemador', subType: 'Seguridad', title: 'Limpieza', progress: 0, assignee: 'Javier', startDate: '2026-03-07T08:00:00', endDate: '2026-03-07T18:00:00' },
   { id: 311, type: 'quemador', subType: 'Seguridad', title: 'Pruebas de operación.', progress: 0, assignee: 'Javier', startDate: '2026-03-11T08:00:00', endDate: '2026-03-11T18:00:00' },
-
-  // ==================== FRENTE 4: RUTA CRÍTICA GLP ====================
-  { id: 403, type: 'glp', subType: 'Requisitos y Seguridad', title: 'Alinear requerimientos de SHE para ingreso a planta', progress: 100, assignee: 'Juan Carlos/Guillermo Lazo', startDate: '2026-03-03T08:00:00', endDate: '2026-03-03T18:00:00' },
-  { id: 404, type: 'glp', subType: 'Requisitos y Seguridad', title: 'Mantenimiento del sistema contra incendio (lijado, pintura)', progress: 100, assignee: 'David Asevedo', startDate: '2026-03-03T08:00:00', endDate: '2026-03-03T19:00:00' },
-  { id: 405, type: 'glp', subType: 'Requisitos y Seguridad', title: 'Reemplazo de señaletica de seguridad', progress: 100, assignee: 'Victor Mendoza', startDate: '2026-03-03T08:00:00', endDate: '2026-03-05T18:00:00' },
-  { id: 406, type: 'glp', subType: 'Requisitos y Seguridad', title: 'Reemplazo de señaleticas de seguridad del tanque', progress: 100, assignee: 'Victor Mendoza', startDate: '2026-03-03T08:00:00', endDate: '2026-03-05T18:00:00' },
-  
-  { id: 407, type: 'glp', subType: 'Intervención Tanques', title: 'Reemplazo de instrumentacion del tanque (manometro y termometro)', progress: 100, assignee: 'Javier Hurtado/LINGAS', startDate: '2026-03-04T08:00:00', endDate: '2026-03-05T18:00:00' },
-  { id: 408, type: 'glp', subType: 'Intervención Tanques', title: 'Reemplazo y hermeticidad de sistema de llenado de GLP', progress: 100, assignee: 'Diego Vargas/LINGAS', startDate: '2026-03-04T08:00:00', endDate: '2026-03-05T18:00:00' },
-  { id: 409, type: 'glp', subType: 'Intervención Tanques', title: 'Mantenimiento de valvulas shut off y sistema de accionamiento', progress: 100, assignee: 'Diego Vargas/LINGAS', startDate: '2026-03-04T08:00:00', endDate: '2026-03-06T18:00:00' },
-  { id: 410, type: 'glp', subType: 'Intervención Tanques', title: 'Reemplazo de valvulas de globo en cada tanque (2x)', progress: 100, assignee: 'Diego Vargas/LINGAS', startDate: '2026-03-04T08:00:00', endDate: '2026-03-06T18:00:00' },
-  { id: 411, type: 'glp', subType: 'Intervención Tanques', title: 'Reemplazo de valvulas de globo y alivio en descarga (2x)', progress: 100, assignee: 'Diego Vargas/LINGAS', startDate: '2026-03-04T08:00:00', endDate: '2026-03-06T18:00:00' },
-  { id: 412, type: 'glp', subType: 'Intervención Tanques', title: 'Reemplazo de niples y valvula de purga 8 1 x tanque', progress: 100, assignee: 'Diego Vargas/LINGAS', startDate: '2026-03-04T08:00:00', endDate: '2026-03-06T18:00:00' },
-  { id: 413, type: 'glp', subType: 'Intervención Tanques', title: 'Mantenimiento y calibracion transmisor presion en tanque', progress: 100, assignee: 'Javier Hurtado/LINGAS', startDate: '2026-03-04T08:00:00', endDate: '2026-03-06T18:00:00' },
-  { id: 414, type: 'glp', subType: 'Intervención Tanques', title: 'Mantenimiento y claibración de valvulas de seguridad MAWP', progress: 100, assignee: 'Diego Vargas/LINGAS', startDate: '2026-03-04T08:00:00', endDate: '2026-03-06T18:00:00' },
-  { id: 415, type: 'glp', subType: 'Intervención Tanques', title: 'Mantenimiento (lijado y pintado) de los manhole', progress: 100, assignee: 'Diego Vargas/LINGAS', startDate: '2026-03-04T08:00:00', endDate: '2026-03-04T18:00:00' },
-  { id: 416, type: 'glp', subType: 'Intervención Tanques', title: 'Reemplazo de valvula linea de consumo', progress: 100, assignee: 'Diego Vargas/LINGAS', startDate: '2026-03-04T08:00:00', endDate: '2026-03-04T18:00:00' },
-  { id: 417, type: 'glp', subType: 'Intervención Tanques', title: 'Reemplazo de valvula reguladora', progress: 100, assignee: 'Diego Vargas/LINGAS', startDate: '2026-03-04T08:00:00', endDate: '2026-03-05T18:00:00' },
-  { id: 418, type: 'glp', subType: 'Intervención Tanques', title: 'Reemplazo de valvulas de extraccion liquida', progress: 100, assignee: 'Diego Vargas/LINGAS', startDate: '2026-03-04T08:00:00', endDate: '2026-03-05T18:00:00' },
-  
-  { id: 419, type: 'glp', subType: 'Líneas y Vaporizadores', title: 'Reemplazo de manometros en linea de descarga', progress: 100, assignee: 'Diego Vargas/LINGAS', startDate: '2026-03-05T08:00:00', endDate: '2026-03-06T18:00:00' },
-  { id: 420, type: 'glp', subType: 'Líneas y Vaporizadores', title: 'Reemplazo de tornillos, empaquetaduras tubería de descarga', progress: 100, assignee: 'Diego Vargas/LINGAS', startDate: '2026-03-05T08:00:00', endDate: '2026-03-06T18:00:00' },
-  { id: 421, type: 'glp', subType: 'Líneas y Vaporizadores', title: 'Reemplazo de valvulas de globo (copla)', progress: 100, assignee: 'Diego Vargas/LINGAS', startDate: '2026-03-05T08:00:00', endDate: '2026-03-06T18:00:00' },
-  { id: 422, type: 'glp', subType: 'Líneas y Vaporizadores', title: 'Mantenimiento de detectores de gas', progress: 100, assignee: 'Javier Hurtado/SOLIVAN', startDate: '2026-03-03T08:00:00', endDate: '2026-03-05T18:00:00' },
-  { id: 423, type: 'glp', subType: 'Líneas y Vaporizadores', title: 'Mantenimiento de linea de vaporizadores', progress: 100, assignee: 'Diego Vargas/LINGAS', startDate: '2026-03-04T08:00:00', endDate: '2026-03-06T18:00:00' },
-  { id: 424, type: 'glp', subType: 'Líneas y Vaporizadores', title: 'Mantenimiento de valvula reguladora de vaporizadores', progress: 100, assignee: 'Javier Hurtado/LINGAS', startDate: '2026-03-04T08:00:00', endDate: '2026-03-06T18:00:00' },
-  { id: 425, type: 'glp', subType: 'Líneas y Vaporizadores', title: 'Instalación de vaporizadores, con sus accesorios', progress: 85, assignee: 'Javier Hurtado/TILGAS', startDate: '2026-03-04T08:00:00', endDate: '2026-03-07T18:00:00' },
-  
-  { id: 426, type: 'glp', subType: 'Pruebas y Certificación', title: 'Verificación de puntos adicionales en tanques de 1000', progress: 100, assignee: 'Diego Vargas/Solivan', startDate: '2026-03-03T08:00:00', endDate: '2026-03-03T13:00:00' },
-  { id: 427, type: 'glp', subType: 'Pruebas y Certificación', title: 'Visita de autoridad para cerrar tanques', progress: 0, assignee: 'Alvaro/Jose/Juan C', startDate: '2026-03-09T08:00:00', endDate: '2026-03-09T18:00:00' },
-  { id: 428, type: 'glp', subType: 'Pruebas y Certificación', title: 'Mantenimiento de caldera Nebraska', progress: 60, assignee: 'Diego V./Energía', startDate: '2026-03-04T08:00:00', endDate: '2026-03-08T18:00:00' },
-  { id: 429, type: 'glp', subType: 'Pruebas y Certificación', title: 'Conversion de caldera Clever B a GLP', progress: 0, assignee: 'Christian M/LA LLAVE', startDate: '2026-03-08T08:00:00', endDate: '2026-03-09T18:00:00' },
-  { id: 430, type: 'glp', subType: 'Pruebas y Certificación', title: 'Prueba de hermeticidad de todo el sistema', progress: 30, assignee: 'Juan Carlos/LINGAS', startDate: '2026-03-07T08:00:00', endDate: '2026-03-07T18:00:00' },
-  { id: 431, type: 'glp', subType: 'Pruebas y Certificación', title: 'Certificacion de Linea de GLP OSINERGMIN', progress: 0, assignee: 'Juan Carlos/LINGAS', startDate: '2026-03-09T08:00:00', endDate: '2026-03-09T18:00:00' },
-  { id: 432, type: 'glp', subType: 'Pruebas y Certificación', title: 'Suministro de GLP', progress: 0, assignee: 'Ubaldo Leon', startDate: '2026-03-10T08:00:00', endDate: '2026-03-10T18:00:00' },
-  { id: 433, type: 'glp', subType: 'Pruebas y Certificación', title: 'Proceso de pruebas del sistema con combustible', progress: 0, assignee: 'Juan Carlos/LINGAS', startDate: '2026-03-11T08:00:00', endDate: '2026-03-11T18:00:00' },
-  { id: 434, type: 'glp', subType: 'Pruebas y Certificación', title: 'Calibracion de combustion en quemador de capotas con GLP', progress: 0, assignee: 'Javier Hurtado/FLOSITEC', startDate: '2026-03-11T08:00:00', endDate: '2026-03-11T18:00:00' },
 ];
 
 // --- FUNCIONES AUXILIARES ---
@@ -218,8 +180,9 @@ export default function App() {
   const renderTaskDetails = () => {
     if (!selectedTask) return null;
     const workType = WORK_TYPES[selectedTask.type.toUpperCase()];
+    if (!workType) return null; // Prevención de errores si una tarea huérfana quedara seleccionada
+
     const Icon = workType.icon;
-    const isGLP = selectedTask.type === 'glp';
     const status = getStatus(selectedTask.progress);
 
     return (
@@ -229,7 +192,7 @@ export default function App() {
             <Icon className="w-6 h-6" />
           </div>
           <div>
-            <span className={`text-[10px] font-black tracking-widest uppercase ${isGLP ? 'text-red-500' : 'text-slate-500'}`}>
+            <span className="text-[10px] font-black tracking-widest uppercase text-slate-500">
               {workType.label} • {selectedTask.subType}
             </span>
             <h2 className="text-lg font-bold text-slate-800 leading-tight mt-1">{selectedTask.title}</h2>
@@ -312,7 +275,7 @@ export default function App() {
               <h2 className="text-xl font-bold text-slate-700">Plan Maestro de Parada (Control Detallado)</h2>
             </div>
             
-            {/* TARJETAS DE RESUMEN DINÁMICAS (Diseño actualizado según imagen) */}
+            {/* TARJETAS DE RESUMEN DINÁMICAS */}
             <div className="flex gap-4">
               <div className="flex flex-col justify-center items-center px-6 py-4 bg-white rounded-xl border border-slate-200 shadow-sm min-w-[150px]">
                 <span className="block text-3xl font-black text-slate-700 leading-none">
@@ -415,7 +378,6 @@ export default function App() {
                       const position = calculatePosition(task.startDate, task.endDate);
                       const isSelected = selectedTask?.id === task.id;
                       const workColor = WORK_TYPES[task.type.toUpperCase()].color;
-                      const isGLP = task.type === 'glp';
                       const status = getStatus(task.progress);
                       
                       let renderSeparator = false;
@@ -443,7 +405,7 @@ export default function App() {
                             <div className="w-[380px] p-3 border-r border-slate-100 flex items-center gap-3 bg-white group-hover:bg-slate-50 sticky left-0 z-20 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.03)]">
                               <div className={`w-2 h-2 rounded-full flex-shrink-0 shadow-sm ${workColor} ${status === 'pendiente' ? 'opacity-30' : ''}`}></div>
                               <div className="min-w-0 flex-1">
-                                <p className={`font-bold text-xs truncate ${isGLP ? 'text-slate-800' : 'text-slate-700'}`} title={task.title}>
+                                <p className="font-bold text-xs truncate text-slate-700" title={task.title}>
                                   {task.title}
                                 </p>
                                 <div className="flex justify-between items-center mt-0.5">
