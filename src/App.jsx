@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
-import { Calendar, Clock, Database, Flame, Target, AlertTriangle, AlertOctagon, CheckCircle2, Factory } from 'lucide-react';
+import { Calendar, Clock, Database, Flame, Target, AlertOctagon, CheckCircle2, Factory, Filter } from 'lucide-react';
 
-// --- CONFIGURACIÓN DE FECHAS (Expandido para cubrir desde el 03 de Marzo) ---
+// --- CONFIGURACIÓN DE FECHAS ---
 const PROJECT_START = '2026-03-03T00:00:00';
 const PROJECT_END = '2026-03-11T23:59:59';
 
@@ -9,153 +9,149 @@ const WORK_TYPES = {
   TANQUES: { id: 'tanques', label: 'Tanques e Instalaciones', color: 'bg-blue-600', icon: Database },
   CALDERA: { id: 'caldera', label: 'Caldera', color: 'bg-orange-500', icon: Flame },
   QUEMADOR: { id: 'quemador', label: 'Quemador de Capota', color: 'bg-purple-600', icon: Target },
-  GLP: { id: 'glp', label: 'Ruta Crítica Habilitar GLP', color: 'bg-red-600', icon: AlertOctagon }, // NUEVA SECCIÓN
+  GLP: { id: 'glp', label: 'Ruta Crítica Habilitar GLP', color: 'bg-red-600', icon: AlertOctagon },
 };
 
-// --- DATOS INTEGRADOS (Anteriores + Nuevo Excel GLP) ---
+// --- DATA MASTER: TRANSCRIPCIÓN TOTAL DE LOS 3 EXCEL (Sin agrupaciones ni eliminaciones) ---
 const INITIAL_TASKS = [
-  // ==========================================
-  // FRENTE 4: RUTA CRÍTICA GLP (NUEVO)
-  // ==========================================
-  {
-    id: 102,
-    title: 'Alinear requerimientos SHE',
-    type: 'glp',
-    startDate: '2026-03-03T09:00:00',
-    endDate: '2026-03-03T17:00:00',
-    progress: 100,
-    status: 'completado',
-    assignee: 'J. Carlos / G. Lazo (SHE)',
-    description: 'Alinear requerimientos de seguridad, salud y medio ambiente (SHE) para el ingreso a planta de contratistas.',
-  },
-  {
-    id: 103,
-    title: 'Mantenimiento Sistema Contra Incendio',
-    type: 'glp',
-    startDate: '2026-03-03T19:00:00',
-    endDate: '2026-03-04T05:00:00',
-    progress: 100,
-    status: 'completado',
-    assignee: 'David Asevedo',
-    description: 'Mantenimiento del sistema contra incendio de la instalación, barandas, escaleras y plataformas (lijado, pintura, sentidos de flujo).',
-  },
-  {
-    id: 104,
-    title: 'Reemplazo de instrumentación de tanque',
-    type: 'glp',
-    startDate: '2026-03-04T08:00:00',
-    endDate: '2026-03-05T18:00:00',
-    progress: 100,
-    status: 'completado',
-    assignee: 'Javier Hurtado / LINGAS',
-    description: 'Reemplazo de instrumentación del tanque (manómetro y termómetro) y mantenimiento de detectores de gas.',
-  },
-  {
-    id: 105,
-    title: 'Mantenimiento Válvulas y Descargas',
-    type: 'glp',
-    startDate: '2026-03-04T08:00:00',
-    endDate: '2026-03-06T18:00:00',
-    progress: 100,
-    status: 'completado',
-    assignee: 'Diego Vargas / LINGAS',
-    description: 'Reemplazo de válvulas shut off, globo, alivio y purga en tanques. Mantenimiento y calibración de válvulas de seguridad (MAWP).',
-  },
-  {
-    id: 106,
-    title: 'Instalación de vaporizadores',
-    type: 'glp',
-    startDate: '2026-03-04T08:00:00',
-    endDate: '2026-03-07T18:00:00',
-    progress: 85,
-    status: 'en_progreso',
-    assignee: 'Javier Hurtado / TILGAS',
-    description: 'Instalación de vaporizadores con sus accesorios y anclaje. Verificación de flujo máximo necesario.',
-  },
-  {
-    id: 107,
-    title: 'Mantenimiento Caldera Nebraska',
-    type: 'glp',
-    startDate: '2026-03-04T08:00:00',
-    endDate: '2026-03-08T18:00:00',
-    progress: 60,
-    status: 'en_progreso',
-    assignee: 'Diego V. / Energía y Combust.',
-    description: 'Mantenimiento mayor de la caldera Nebraska de acuerdo al programa de parada.',
-  },
-  {
-    id: 108,
-    title: 'Prueba de hermeticidad de todo el sistema',
-    type: 'glp',
-    startDate: '2026-03-07T08:00:00',
-    endDate: '2026-03-07T18:00:00',
-    progress: 30,
-    status: 'en_progreso',
-    assignee: 'Juan Carlos / LINGAS',
-    description: 'Pruebas de presión y hermeticidad de toda la línea de GLP ensamblada.',
-  },
-  {
-    id: 109,
-    title: 'Certificación de Línea OSINERGMIN',
-    type: 'glp',
-    startDate: '2026-03-09T08:00:00',
-    endDate: '2026-03-09T17:00:00',
-    progress: 0,
-    status: 'pendiente',
-    assignee: 'Juan Carlos / LINGAS',
-    description: 'Visita de la autoridad. Fecha sujeta a confirmación final por parte de OSINERGMIN.',
-  },
-  {
-    id: 110,
-    title: 'Suministro de GLP y Pruebas',
-    type: 'glp',
-    startDate: '2026-03-10T08:00:00',
-    endDate: '2026-03-11T18:00:00',
-    progress: 0,
-    status: 'pendiente',
-    assignee: 'Ubaldo Leon / J. Carlos',
-    description: 'Abastecimiento inicial de GLP, proceso de pruebas del sistema con combustible y calibración de combustión.',
-  },
+  // ==================== FRENTE 1: TANQUES E INSTALACIONES ====================
+  // Preparación
+  { id: 101, type: 'tanques', subType: 'Preparación', title: 'Permisos de alto riesgo', progress: 100, assignee: 'Diego Vargas', startDate: '2026-03-06T08:00:00', endDate: '2026-03-06T18:00:00' },
+  { id: 102, type: 'tanques', subType: 'Preparación', title: 'Habilitación de personal calificado', progress: 100, assignee: 'Diego Vargas', startDate: '2026-03-06T08:00:00', endDate: '2026-03-06T18:00:00' },
+  { id: 103, type: 'tanques', subType: 'Preparación', title: 'Habilitación de equipos de rescate y seguridad', progress: 100, assignee: 'Diego Vargas', startDate: '2026-03-06T08:00:00', endDate: '2026-03-06T18:00:00' },
+  { id: 104, type: 'tanques', subType: 'Preparación', title: 'Inducciones y requisitos', progress: 100, assignee: 'Diego Vargas', startDate: '2026-03-06T08:00:00', endDate: '2026-03-06T18:00:00' },
+  // Reparación de Tanques
+  { id: 105, type: 'tanques', subType: 'Reparación de Tanques', title: 'Soldadura interna de Tq2', progress: 80, assignee: 'Diego Vargas', startDate: '2026-03-06T08:00:00', endDate: '2026-03-07T18:00:00' },
+  { id: 106, type: 'tanques', subType: 'Reparación de Tanques', title: 'Soldadura interna de Tq1', progress: 0, assignee: 'Diego Vargas', startDate: '2026-03-07T08:00:00', endDate: '2026-03-09T18:00:00' },
+  { id: 107, type: 'tanques', subType: 'Reparación de Tanques', title: 'Instalación de válvulas de seguridad Tq2', progress: 20, assignee: 'Diego Vargas', startDate: '2026-03-07T08:00:00', endDate: '2026-03-08T18:00:00' },
+  { id: 108, type: 'tanques', subType: 'Reparación de Tanques', title: 'Instalación de válvulas de seguridad Tq1', progress: 20, assignee: 'Diego Vargas', startDate: '2026-03-09T08:00:00', endDate: '2026-03-10T18:00:00' },
+  { id: 109, type: 'tanques', subType: 'Reparación de Tanques', title: 'Instalación de válvula reguladora de presión GLP Tq1', progress: 0, assignee: 'Diego Vargas', startDate: '2026-03-09T08:00:00', endDate: '2026-03-09T18:00:00' },
+  { id: 110, type: 'tanques', subType: 'Reparación de Tanques', title: 'Instalación de válvula reguladora de presión GLP Tq2', progress: 0, assignee: 'Diego Vargas', startDate: '2026-03-09T08:00:00', endDate: '2026-03-09T18:00:00' },
+  { id: 111, type: 'tanques', subType: 'Reparación de Tanques', title: 'Instalación de shutoff Tq1', progress: 0, assignee: 'Diego Vargas', startDate: '2026-03-09T08:00:00', endDate: '2026-03-09T18:00:00' },
+  { id: 112, type: 'tanques', subType: 'Reparación de Tanques', title: 'Instalación de shutoff Tq2', progress: 0, assignee: 'Diego Vargas', startDate: '2026-03-09T08:00:00', endDate: '2026-03-09T18:00:00' },
+  { id: 113, type: 'tanques', subType: 'Reparación de Tanques', title: 'Instalación de valvulería y accesorios', progress: 25, assignee: 'Diego Vargas', startDate: '2026-03-07T08:00:00', endDate: '2026-03-10T18:00:00' },
+  { id: 114, type: 'tanques', subType: 'Reparación de Tanques', title: 'Instalación de instrumentación analógica', progress: 0, assignee: 'Diego Vargas', startDate: '2026-03-07T08:00:00', endDate: '2026-03-10T18:00:00' },
+  // Reparación de Instalaciones
+  { id: 115, type: 'tanques', subType: 'Reparación de instalaciones', title: 'Recuperación de pipping', progress: 65, assignee: 'Diego Vargas', startDate: '2026-03-06T08:00:00', endDate: '2026-03-10T18:00:00' },
+  { id: 116, type: 'tanques', subType: 'Reparación de instalaciones', title: 'Habilitación de material para el dimensionamiento', progress: 50, assignee: 'Diego Vargas', startDate: '2026-03-07T08:00:00', endDate: '2026-03-10T18:00:00' },
+  { id: 117, type: 'tanques', subType: 'Reparación de instalaciones', title: 'Montaje de tuberías nuevas', progress: 0, assignee: 'Diego Vargas', startDate: '2026-03-09T08:00:00', endDate: '2026-03-10T18:00:00' },
+  { id: 118, type: 'tanques', subType: 'Reparación de instalaciones', title: 'Recuperación de bridas, pernería, aislamientos', progress: 40, assignee: 'Diego Vargas', startDate: '2026-03-06T08:00:00', endDate: '2026-03-09T18:00:00' },
+  { id: 119, type: 'tanques', subType: 'Reparación de instalaciones', title: 'Cambio de válvulas reguladoras', progress: 0, assignee: 'Diego Vargas', startDate: '2026-03-09T08:00:00', endDate: '2026-03-09T18:00:00' },
+  { id: 120, type: 'tanques', subType: 'Reparación de instalaciones', title: 'Cambio de valvulería y accesorios de zona de descarga', progress: 35, assignee: 'Diego Vargas', startDate: '2026-03-06T08:00:00', endDate: '2026-03-09T18:00:00' },
+  { id: 121, type: 'tanques', subType: 'Reparación de instalaciones', title: 'Cambio de valvulería y accesorios de zona de vaporizadores', progress: 40, assignee: 'Diego Vargas', startDate: '2026-03-06T08:00:00', endDate: '2026-03-09T18:00:00' },
+  // Seguridad de instalaciones
+  { id: 122, type: 'tanques', subType: 'Seguridad de instalaciones', title: 'Reparación de sensores de gas / detectores de flama', progress: 30, assignee: 'Diego Vargas', startDate: '2026-03-06T08:00:00', endDate: '2026-03-09T18:00:00' },
+  { id: 123, type: 'tanques', subType: 'Seguridad de instalaciones', title: 'Instalación de sensórica', progress: 0, assignee: 'Diego Vargas', startDate: '2026-03-10T08:00:00', endDate: '2026-03-10T18:00:00' },
+  { id: 124, type: 'tanques', subType: 'Seguridad de instalaciones', title: 'Prueba hidrostática de Tq1', progress: 0, assignee: 'Diego Vargas', startDate: '2026-03-10T08:00:00', endDate: '2026-03-10T18:00:00' },
+  { id: 125, type: 'tanques', subType: 'Seguridad de instalaciones', title: 'Prueba hidrostática de Tq2', progress: 0, assignee: 'Diego Vargas', startDate: '2026-03-10T08:00:00', endDate: '2026-03-10T18:00:00' },
+  { id: 126, type: 'tanques', subType: 'Seguridad de instalaciones', title: 'Prueba hidrostática de (descarga a tanques)', progress: 0, assignee: 'Diego Vargas', startDate: '2026-03-10T08:00:00', endDate: '2026-03-10T18:00:00' },
+  { id: 127, type: 'tanques', subType: 'Seguridad de instalaciones', title: 'Prueba hidrostática de (Tanques a Vaporizadores)', progress: 0, assignee: 'Diego Vargas', startDate: '2026-03-10T08:00:00', endDate: '2026-03-10T18:00:00' },
+  { id: 128, type: 'tanques', subType: 'Seguridad de instalaciones', title: 'Prueba hidrostática de (Tanques a Calderas)', progress: 0, assignee: 'Diego Vargas', startDate: '2026-03-10T08:00:00', endDate: '2026-03-10T18:00:00' },
+  { id: 129, type: 'tanques', subType: 'Seguridad de instalaciones', title: 'Prueba hidrostática de (Tanques a Capota)', progress: 0, assignee: 'Diego Vargas', startDate: '2026-03-10T08:00:00', endDate: '2026-03-10T18:00:00' },
 
-  // ==========================================
-  // FRENTES ANTERIORES: TANQUES, CALDERA, QUEMADOR
-  // ==========================================
-  {
-    id: 1, title: 'Permisos y Liberaciones', type: 'tanques', startDate: '2026-03-06T07:00:00', endDate: '2026-03-06T08:00:00', progress: 100, status: 'completado', assignee: 'Diego Vargas', description: 'Ingreso y generación de permisos de trabajo, además de las liberaciones de área correspondientes.'
-  },
-  {
-    id: 2, title: 'Preparación de líneas', type: 'tanques', startDate: '2026-03-06T08:00:00', endDate: '2026-03-06T15:00:00', progress: 100, status: 'completado', assignee: 'Diego Vargas', description: 'Revisión exhaustiva, pulido y preparación de las líneas que han sido desmontadas.'
-  },
-  {
-    id: 3, title: 'Montaje de repuestos', type: 'tanques', startDate: '2026-03-06T15:00:00', endDate: '2026-03-06T17:00:00', progress: 100, status: 'completado', assignee: 'Diego Vargas', description: 'Revisión, validación e inicio de montaje de repuestos solicitados.'
-  },
-  {
-    id: 4, title: 'Mantenimiento Tanque 1', type: 'tanques', startDate: '2026-03-06T17:00:00', endDate: '2026-03-06T23:00:00', progress: 100, status: 'completado', assignee: 'Diego Vargas', description: 'Trabajos de soldadura interna y externa. Además, montaje de válvulas en la línea del tanque 1.'
-  },
-  {
-    id: 5, title: 'Bloqueo de tuberías', type: 'caldera', startDate: '2026-03-06T08:00:00', endDate: '2026-03-06T10:00:00', progress: 100, status: 'completado', assignee: 'Christian', description: 'Bloqueo físico y etiquetado de salidas de tuberías para preparar condiciones seguras para pruebas.'
-  },
-  {
-    id: 7, title: 'Pruebas Hidrostáticas 200/250psi', type: 'caldera', startDate: '2026-03-06T10:00:00', endDate: '2026-03-06T16:00:00', progress: 100, status: 'completado', assignee: 'Christian', description: 'Ejecución de pruebas hidrostáticas de alta presión sostenidas por espacio de horas continuas.'
-  },
-  {
-    id: 8, title: 'Mantenimiento Sis. Control', type: 'caldera', startDate: '2026-03-06T08:00:00', endDate: '2026-03-08T18:00:00', progress: 45, status: 'en_progreso', assignee: 'Christian', description: 'Mantenimiento integral de los sistemas de control de seguridad de la caldera.'
-  },
-  {
-    id: 9, title: 'Pruebas Economizador', type: 'caldera', startDate: '2026-03-07T08:00:00', endDate: '2026-03-08T08:00:00', progress: 10, status: 'en_progreso', assignee: 'Christian', description: 'Inicio de pruebas hidrostáticas en el economizador.'
-  },
-  {
-    id: 12, title: 'Sellado Refractario (Secado)', type: 'caldera', startDate: '2026-03-08T14:00:00', endDate: '2026-03-10T14:00:00', progress: 0, status: 'pendiente', assignee: 'Christian', description: 'Sellado con material refractario de la parte interna del hogar de la caldera. Tiempo de secado: 2 días.'
-  },
-  {
-    id: 13, title: 'Pruebas Elem. Seguridad', type: 'caldera', startDate: '2026-03-10T14:00:00', endDate: '2026-03-11T14:00:00', progress: 0, status: 'pendiente', assignee: 'Christian', description: 'Condición: Se debe ejecutar apenas se tenga habilitada la línea de gas.'
-  },
-  {
-    id: 14, title: 'Mantenimiento Capota', type: 'quemador', startDate: '2026-03-07T08:00:00', endDate: '2026-03-07T18:00:00', progress: 0, status: 'pendiente', assignee: 'Javier', description: 'Trabajos programados a ejecutarse en el Quemador de Capota.'
-  }
+  // ==================== FRENTE 2: CALDERAS ====================
+  // Mecánica
+  { id: 201, type: 'caldera', subType: 'Mecánica', title: 'Aislamiento de caldera.', progress: 100, assignee: 'Christian', startDate: '2026-03-06T08:00:00', endDate: '2026-03-06T18:00:00' },
+  { id: 202, type: 'caldera', subType: 'Mecánica', title: 'Prueba hidrostatica de la caldera.', progress: 85, assignee: 'Christian', startDate: '2026-03-06T08:00:00', endDate: '2026-03-07T18:00:00' },
+  { id: 203, type: 'caldera', subType: 'Mecánica', title: 'Identificación y reparación de daños', progress: 85, assignee: 'Christian', startDate: '2026-03-06T08:00:00', endDate: '2026-03-07T18:00:00' },
+  { id: 204, type: 'caldera', subType: 'Mecánica', title: 'Calibración de válvulas de seguridad', progress: 100, assignee: 'Christian', startDate: '2026-03-06T08:00:00', endDate: '2026-03-07T18:00:00' },
+  { id: 205, type: 'caldera', subType: 'Mecánica', title: 'Mtto válvulas check', progress: 100, assignee: 'Christian', startDate: '2026-03-06T08:00:00', endDate: '2026-03-07T18:00:00' },
+  // Eléctrica
+  { id: 206, type: 'caldera', subType: 'Eléctrica', title: 'Inspección de amperajes, acoplamientos y medición de aislamientos.', progress: 100, assignee: 'Christian', startDate: '2026-03-06T08:00:00', endDate: '2026-03-08T18:00:00' },
+  { id: 207, type: 'caldera', subType: 'Eléctrica', title: 'Inspección general de gabinetes eléctricos', progress: 100, assignee: 'Christian', startDate: '2026-03-06T08:00:00', endDate: '2026-03-08T18:00:00' },
+  { id: 208, type: 'caldera', subType: 'Eléctrica', title: 'Calibración de instrumentación análoga', progress: 100, assignee: 'Christian', startDate: '2026-03-06T08:00:00', endDate: '2026-03-08T18:00:00' },
+  { id: 209, type: 'caldera', subType: 'Eléctrica', title: 'Revisión de sistemas se seguridad: valv control, termostatos, presostatos', progress: 50, assignee: 'Christian', startDate: '2026-03-06T08:00:00', endDate: '2026-03-08T18:00:00' },
+  { id: 210, type: 'caldera', subType: 'Eléctrica', title: 'Megado de motores', progress: 50, assignee: 'Christian', startDate: '2026-03-06T08:00:00', endDate: '2026-03-08T18:00:00' },
+  { id: 211, type: 'caldera', subType: 'Eléctrica', title: 'Revisión y ajustes del sistema neumático', progress: 100, assignee: 'Christian', startDate: '2026-03-06T08:00:00', endDate: '2026-03-08T18:00:00' },
+  // Control
+  { id: 212, type: 'caldera', subType: 'Control', title: 'Pruebas de encendido de llama, barrido de gases.', progress: 0, assignee: 'Christian', startDate: '2026-03-11T08:00:00', endDate: '2026-03-11T18:00:00' },
+  { id: 213, type: 'caldera', subType: 'Control', title: 'Pruebas de sobre presión por gas y aire.', progress: 0, assignee: 'Christian', startDate: '2026-03-11T08:00:00', endDate: '2026-03-11T18:00:00' },
+  { id: 214, type: 'caldera', subType: 'Control', title: 'Pruebas de sistema de apagado de emergencia.', progress: 0, assignee: 'Christian', startDate: '2026-03-11T08:00:00', endDate: '2026-03-11T18:00:00' },
+  // Quemador
+  { id: 215, type: 'caldera', subType: 'Quemador', title: 'Revisión y mtto de tren de combustión', progress: 50, assignee: 'Christian', startDate: '2026-03-06T08:00:00', endDate: '2026-03-07T18:00:00' },
+  { id: 216, type: 'caldera', subType: 'Quemador', title: 'Mtto de filtros de gas.', progress: 0, assignee: 'Christian', startDate: '2026-03-06T08:00:00', endDate: '2026-03-07T18:00:00' },
+  { id: 217, type: 'caldera', subType: 'Quemador', title: 'Desmontaje de cabezal de combustión.', progress: 0, assignee: 'Christian', startDate: '2026-03-06T08:00:00', endDate: '2026-03-07T18:00:00' },
+  { id: 218, type: 'caldera', subType: 'Quemador', title: 'Mtto a quemador de gas.', progress: 0, assignee: 'Christian', startDate: '2026-03-06T08:00:00', endDate: '2026-03-07T18:00:00' },
+  { id: 219, type: 'caldera', subType: 'Quemador', title: 'Mtto a electrodo, toberas y fotoceldas.', progress: 0, assignee: 'Christian', startDate: '2026-03-06T08:00:00', endDate: '2026-03-07T18:00:00' },
+  { id: 220, type: 'caldera', subType: 'Quemador', title: 'Calibración de electrodos.', progress: 0, assignee: 'Christian', startDate: '2026-03-06T08:00:00', endDate: '2026-03-07T18:00:00' },
+  { id: 221, type: 'caldera', subType: 'Quemador', title: 'Revisión de sistemas de seguridades de quemador.', progress: 0, assignee: 'Christian', startDate: '2026-03-06T08:00:00', endDate: '2026-03-07T18:00:00' },
+  { id: 222, type: 'caldera', subType: 'Quemador', title: 'Pruebas de ventilador.', progress: 0, assignee: 'Christian', startDate: '2026-03-06T08:00:00', endDate: '2026-03-07T18:00:00' },
+  // Ventilador
+  { id: 223, type: 'caldera', subType: 'Ventilador', title: 'Balanceo dinámito de ventilador.', progress: 0, assignee: 'Christian', startDate: '2026-03-11T08:00:00', endDate: '2026-03-11T18:00:00' },
+  { id: 224, type: 'caldera', subType: 'Ventilador', title: 'Megado de motor.', progress: 0, assignee: 'Christian', startDate: '2026-03-07T08:00:00', endDate: '2026-03-07T18:00:00' },
+  { id: 225, type: 'caldera', subType: 'Ventilador', title: 'Limpieza de compartimiento de ventilación.', progress: 0, assignee: 'Christian', startDate: '2026-03-07T08:00:00', endDate: '2026-03-07T18:00:00' },
+  // Refractarios
+  { id: 226, type: 'caldera', subType: 'Refractarios', title: 'Desmontaje de refractarios.', progress: 50, assignee: 'Christian', startDate: '2026-03-06T08:00:00', endDate: '2026-03-07T18:00:00' },
+  { id: 227, type: 'caldera', subType: 'Refractarios', title: 'Reparación de hogar de fuego', progress: 0, assignee: 'Christian', startDate: '2026-03-07T08:00:00', endDate: '2026-03-07T18:00:00' },
+  { id: 228, type: 'caldera', subType: 'Refractarios', title: 'Curado y resanes.', progress: 0, assignee: 'Christian', startDate: '2026-03-07T08:00:00', endDate: '2026-03-07T18:00:00' },
+  // Economizador
+  { id: 229, type: 'caldera', subType: 'Economizador', title: 'Desconexionado y aislamiento del equipo', progress: 20, assignee: 'Christian', startDate: '2026-03-07T08:00:00', endDate: '2026-03-07T18:00:00' },
+  { id: 230, type: 'caldera', subType: 'Economizador', title: 'Prueba hidrostatica a 250 psi.', progress: 10, assignee: 'Christian', startDate: '2026-03-07T08:00:00', endDate: '2026-03-07T18:00:00' },
+  { id: 231, type: 'caldera', subType: 'Economizador', title: 'Detección de fugas y reparaciones.', progress: 0, assignee: 'Christian', startDate: '2026-03-07T08:00:00', endDate: '2026-03-07T18:00:00' },
+  { id: 232, type: 'caldera', subType: 'Economizador', title: 'Conexionado y cierre de equipo', progress: 0, assignee: 'Christian', startDate: '2026-03-07T08:00:00', endDate: '2026-03-07T18:00:00' },
+
+  // ==================== FRENTE 3: QUEMADOR DE CAPOTA ====================
+  // Mecánica
+  { id: 301, type: 'quemador', subType: 'Mecánica', title: 'Desmontaje de quemador.', progress: 25, assignee: 'Javier', startDate: '2026-03-07T08:00:00', endDate: '2026-03-08T18:00:00' },
+  { id: 302, type: 'quemador', subType: 'Mecánica', title: 'Limpieza de conos y difusores.', progress: 0, assignee: 'Javier', startDate: '2026-03-07T08:00:00', endDate: '2026-03-08T18:00:00' },
+  { id: 303, type: 'quemador', subType: 'Mecánica', title: 'Calibración de toberas de combustión', progress: 0, assignee: 'Javier', startDate: '2026-03-07T08:00:00', endDate: '2026-03-08T18:00:00' },
+  { id: 304, type: 'quemador', subType: 'Mecánica', title: 'Revisión de la ignición.', progress: 0, assignee: 'Javier', startDate: '2026-03-07T08:00:00', endDate: '2026-03-08T18:00:00' },
+  { id: 305, type: 'quemador', subType: 'Mecánica', title: 'Limpieza del sistema de ventilación forzada.', progress: 0, assignee: 'Javier', startDate: '2026-03-07T08:00:00', endDate: '2026-03-08T18:00:00' },
+  // Control
+  { id: 306, type: 'quemador', subType: 'Control', title: 'Calibración de curva de arranque.', progress: 0, assignee: 'Javier', startDate: '2026-03-07T08:00:00', endDate: '2026-03-11T18:00:00' },
+  { id: 307, type: 'quemador', subType: 'Control', title: 'Revisión del sistema de corte por emergencia.', progress: 0, assignee: 'Javier', startDate: '2026-03-07T08:00:00', endDate: '2026-03-11T18:00:00' },
+  { id: 308, type: 'quemador', subType: 'Control', title: 'Revisión del control del flujo de GLP', progress: 0, assignee: 'Javier', startDate: '2026-03-07T08:00:00', endDate: '2026-03-11T18:00:00' },
+  // Seguridad
+  { id: 309, type: 'quemador', subType: 'Seguridad', title: 'Revisión de sistemas de emergencia.', progress: 0, assignee: 'Javier', startDate: '2026-03-07T08:00:00', endDate: '2026-03-11T18:00:00' },
+  { id: 310, type: 'quemador', subType: 'Seguridad', title: 'Limpieza', progress: 0, assignee: 'Javier', startDate: '2026-03-07T08:00:00', endDate: '2026-03-07T18:00:00' },
+  { id: 311, type: 'quemador', subType: 'Seguridad', title: 'Pruebas de operación.', progress: 0, assignee: 'Javier', startDate: '2026-03-11T08:00:00', endDate: '2026-03-11T18:00:00' },
+
+  // ==================== FRENTE 4: RUTA CRÍTICA GLP ====================
+  // (Sin "Homologación y Cotización" según solicitud previa)
+  { id: 403, type: 'glp', subType: 'Requisitos y Seguridad', title: 'Alinear requerimientos de SHE para ingreso a planta', progress: 100, assignee: 'Juan Carlos/Guillermo Lazo', startDate: '2026-03-03T08:00:00', endDate: '2026-03-03T18:00:00' },
+  { id: 404, type: 'glp', subType: 'Requisitos y Seguridad', title: 'Mantenimiento del sistema contra incendio (lijado, pintura)', progress: 100, assignee: 'David Asevedo', startDate: '2026-03-03T08:00:00', endDate: '2026-03-03T19:00:00' },
+  { id: 405, type: 'glp', subType: 'Requisitos y Seguridad', title: 'Reemplazo de señaletica de seguridad', progress: 100, assignee: 'Victor Mendoza', startDate: '2026-03-03T08:00:00', endDate: '2026-03-05T18:00:00' },
+  { id: 406, type: 'glp', subType: 'Requisitos y Seguridad', title: 'Reemplazo de señaleticas de seguridad del tanque', progress: 100, assignee: 'Victor Mendoza', startDate: '2026-03-03T08:00:00', endDate: '2026-03-05T18:00:00' },
+  
+  { id: 407, type: 'glp', subType: 'Intervención Tanques', title: 'Reemplazo de instrumentacion del tanque (manometro y termometro)', progress: 100, assignee: 'Javier Hurtado/LINGAS', startDate: '2026-03-04T08:00:00', endDate: '2026-03-05T18:00:00' },
+  { id: 408, type: 'glp', subType: 'Intervención Tanques', title: 'Reemplazo y hermeticidad de sistema de llenado de GLP', progress: 100, assignee: 'Diego Vargas/LINGAS', startDate: '2026-03-04T08:00:00', endDate: '2026-03-05T18:00:00' },
+  { id: 409, type: 'glp', subType: 'Intervención Tanques', title: 'Mantenimiento de valvulas shut off y sistema de accionamiento', progress: 100, assignee: 'Diego Vargas/LINGAS', startDate: '2026-03-04T08:00:00', endDate: '2026-03-06T18:00:00' },
+  { id: 410, type: 'glp', subType: 'Intervención Tanques', title: 'Reemplazo de valvulas de globo en cada tanque (2x)', progress: 100, assignee: 'Diego Vargas/LINGAS', startDate: '2026-03-04T08:00:00', endDate: '2026-03-06T18:00:00' },
+  { id: 411, type: 'glp', subType: 'Intervención Tanques', title: 'Reemplazo de valvulas de globo y alivio en descarga (2x)', progress: 100, assignee: 'Diego Vargas/LINGAS', startDate: '2026-03-04T08:00:00', endDate: '2026-03-06T18:00:00' },
+  { id: 412, type: 'glp', subType: 'Intervención Tanques', title: 'Reemplazo de niples y valvula de purga 8 1 x tanque', progress: 100, assignee: 'Diego Vargas/LINGAS', startDate: '2026-03-04T08:00:00', endDate: '2026-03-06T18:00:00' },
+  { id: 413, type: 'glp', subType: 'Intervención Tanques', title: 'Mantenimiento y calibracion transmisor presion en tanque', progress: 100, assignee: 'Javier Hurtado/LINGAS', startDate: '2026-03-04T08:00:00', endDate: '2026-03-06T18:00:00' },
+  { id: 414, type: 'glp', subType: 'Intervención Tanques', title: 'Mantenimiento y claibración de valvulas de seguridad MAWP', progress: 100, assignee: 'Diego Vargas/LINGAS', startDate: '2026-03-04T08:00:00', endDate: '2026-03-06T18:00:00' },
+  { id: 415, type: 'glp', subType: 'Intervención Tanques', title: 'Mantenimiento (lijado y pintado) de los manhole', progress: 100, assignee: 'Diego Vargas/LINGAS', startDate: '2026-03-04T08:00:00', endDate: '2026-03-04T18:00:00' },
+  { id: 416, type: 'glp', subType: 'Intervención Tanques', title: 'Reemplazo de valvula linea de consumo', progress: 100, assignee: 'Diego Vargas/LINGAS', startDate: '2026-03-04T08:00:00', endDate: '2026-03-04T18:00:00' },
+  { id: 417, type: 'glp', subType: 'Intervención Tanques', title: 'Reemplazo de valvula reguladora', progress: 100, assignee: 'Diego Vargas/LINGAS', startDate: '2026-03-04T08:00:00', endDate: '2026-03-05T18:00:00' },
+  { id: 418, type: 'glp', subType: 'Intervención Tanques', title: 'Reemplazo de valvulas de extraccion liquida', progress: 100, assignee: 'Diego Vargas/LINGAS', startDate: '2026-03-04T08:00:00', endDate: '2026-03-05T18:00:00' },
+  
+  { id: 419, type: 'glp', subType: 'Líneas y Vaporizadores', title: 'Reemplazo de manometros en linea de descarga', progress: 100, assignee: 'Diego Vargas/LINGAS', startDate: '2026-03-05T08:00:00', endDate: '2026-03-06T18:00:00' },
+  { id: 420, type: 'glp', subType: 'Líneas y Vaporizadores', title: 'Reemplazo de tornillos, empaquetaduras tubería de descarga', progress: 100, assignee: 'Diego Vargas/LINGAS', startDate: '2026-03-05T08:00:00', endDate: '2026-03-06T18:00:00' },
+  { id: 421, type: 'glp', subType: 'Líneas y Vaporizadores', title: 'Reemplazo de valvulas de globo (copla)', progress: 100, assignee: 'Diego Vargas/LINGAS', startDate: '2026-03-05T08:00:00', endDate: '2026-03-06T18:00:00' },
+  { id: 422, type: 'glp', subType: 'Líneas y Vaporizadores', title: 'Mantenimiento de detectores de gas', progress: 100, assignee: 'Javier Hurtado/SOLIVAN', startDate: '2026-03-03T08:00:00', endDate: '2026-03-05T18:00:00' },
+  { id: 423, type: 'glp', subType: 'Líneas y Vaporizadores', title: 'Mantenimiento de linea de vaporizadores', progress: 100, assignee: 'Diego Vargas/LINGAS', startDate: '2026-03-04T08:00:00', endDate: '2026-03-06T18:00:00' },
+  { id: 424, type: 'glp', subType: 'Líneas y Vaporizadores', title: 'Mantenimiento de valvula reguladora de vaporizadores', progress: 100, assignee: 'Javier Hurtado/LINGAS', startDate: '2026-03-04T08:00:00', endDate: '2026-03-06T18:00:00' },
+  { id: 425, type: 'glp', subType: 'Líneas y Vaporizadores', title: 'Instalación de vaporizadores, con sus accesorios', progress: 85, assignee: 'Javier Hurtado/TILGAS', startDate: '2026-03-04T08:00:00', endDate: '2026-03-07T18:00:00' },
+  
+  { id: 426, type: 'glp', subType: 'Pruebas y Certificación', title: 'Verificación de puntos adicionales en tanques de 1000', progress: 100, assignee: 'Diego Vargas/Solivan', startDate: '2026-03-03T08:00:00', endDate: '2026-03-03T13:00:00' },
+  { id: 427, type: 'glp', subType: 'Pruebas y Certificación', title: 'Visita de autoridad para cerrar tanques', progress: 0, assignee: 'Alvaro/Jose/Juan C', startDate: '2026-03-09T08:00:00', endDate: '2026-03-09T18:00:00' },
+  { id: 428, type: 'glp', subType: 'Pruebas y Certificación', title: 'Mantenimiento de caldera Nebraska', progress: 60, assignee: 'Diego V./Energía', startDate: '2026-03-04T08:00:00', endDate: '2026-03-08T18:00:00' },
+  { id: 429, type: 'glp', subType: 'Pruebas y Certificación', title: 'Conversion de caldera Clever B a GLP', progress: 0, assignee: 'Christian M/LA LLAVE', startDate: '2026-03-08T08:00:00', endDate: '2026-03-09T18:00:00' },
+  { id: 430, type: 'glp', subType: 'Pruebas y Certificación', title: 'Prueba de hermeticidad de todo el sistema', progress: 30, assignee: 'Juan Carlos/LINGAS', startDate: '2026-03-07T08:00:00', endDate: '2026-03-07T18:00:00' },
+  { id: 431, type: 'glp', subType: 'Pruebas y Certificación', title: 'Certificacion de Linea de GLP OSINERGMIN', progress: 0, assignee: 'Juan Carlos/LINGAS', startDate: '2026-03-09T08:00:00', endDate: '2026-03-09T18:00:00' },
+  { id: 432, type: 'glp', subType: 'Pruebas y Certificación', title: 'Suministro de GLP', progress: 0, assignee: 'Ubaldo Leon', startDate: '2026-03-10T08:00:00', endDate: '2026-03-10T18:00:00' },
+  { id: 433, type: 'glp', subType: 'Pruebas y Certificación', title: 'Proceso de pruebas del sistema con combustible', progress: 0, assignee: 'Juan Carlos/LINGAS', startDate: '2026-03-11T08:00:00', endDate: '2026-03-11T18:00:00' },
+  { id: 434, type: 'glp', subType: 'Pruebas y Certificación', title: 'Calibracion de combustion en quemador de capotas con GLP', progress: 0, assignee: 'Javier Hurtado/FLOSITEC', startDate: '2026-03-11T08:00:00', endDate: '2026-03-11T18:00:00' },
 ];
 
 // --- FUNCIONES AUXILIARES ---
+const getStatus = (progress) => {
+  if (progress === 100) return 'completado';
+  if (progress > 0) return 'en_progreso';
+  return 'pendiente';
+};
+
 const formatDate = (dateString) => {
   const date = new Date(dateString);
   return date.toLocaleDateString('es-ES', { weekday: 'short', day: '2-digit', month: 'short' });
@@ -167,22 +163,43 @@ const formatTime = (dateString) => {
 };
 
 export default function App() {
-  const [selectedTask, setSelectedTask] = useState(INITIAL_TASKS[0]);
-  const [activeFilter, setActiveFilter] = useState('all');
+  const [selectedTask, setSelectedTask] = useState(INITIAL_TASKS.find(t=> t.progress > 0 && t.progress < 100) || INITIAL_TASKS[0]);
+  const [activeMainFilter, setActiveMainFilter] = useState('all');
+  const [activeSubFilter, setActiveSubFilter] = useState('all');
 
-  // Arreglo de los 9 días del proyecto
   const timelineDays = ['03 Mar', '04 Mar', '05 Mar', '06 Mar', '07 Mar', '08 Mar', '09 Mar', '10 Mar', '11 Mar'];
 
+  // Obtener SubFiltros Dinámicos según la categoría principal seleccionada
+  const availableSubFilters = useMemo(() => {
+    if (activeMainFilter === 'all') return [];
+    const tasksForMain = INITIAL_TASKS.filter(task => task.type === activeMainFilter);
+    const subs = new Set(tasksForMain.map(t => t.subType).filter(Boolean));
+    return Array.from(subs);
+  }, [activeMainFilter]);
+
+  // Aplicar doble filtro (Principal y Secundario)
   const filteredTasks = useMemo(() => {
     let tasks = INITIAL_TASKS;
-    if (activeFilter !== 'all') {
-      tasks = INITIAL_TASKS.filter(task => task.type === activeFilter);
+    
+    // 1. Filtro Principal
+    if (activeMainFilter !== 'all') {
+      tasks = tasks.filter(task => task.type === activeMainFilter);
+      // 2. Filtro Secundario (Si aplica)
+      if (activeSubFilter !== 'all') {
+        tasks = tasks.filter(task => task.subType === activeSubFilter);
+      }
     }
-    // Ordenar por fecha de inicio para que la cascada tenga sentido
+    
+    // Ordenar cronológicamente para mantener el flujo
     return tasks.sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
-  }, [activeFilter]);
+  }, [activeMainFilter, activeSubFilter]);
 
-  // Calcula posición de la barra
+  // Manejador del filtro principal para resetear el secundario
+  const handleMainFilterChange = (filterId) => {
+    setActiveMainFilter(filterId);
+    setActiveSubFilter('all'); // Resetea el subfiltro al cambiar de frente
+  };
+
   const calculatePosition = (startDate, endDate) => {
     const start = new Date(startDate).getTime();
     const end = new Date(endDate).getTime();
@@ -204,6 +221,7 @@ export default function App() {
     const workType = WORK_TYPES[selectedTask.type.toUpperCase()];
     const Icon = workType.icon;
     const isGLP = selectedTask.type === 'glp';
+    const status = getStatus(selectedTask.progress);
 
     return (
       <div className="bg-white rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-200 p-6 flex flex-col h-full sticky top-4 animate-fade-in">
@@ -213,25 +231,13 @@ export default function App() {
           </div>
           <div>
             <span className={`text-[10px] font-black tracking-widest uppercase ${isGLP ? 'text-red-500' : 'text-slate-500'}`}>
-              {workType.label}
+              {workType.label} • {selectedTask.subType}
             </span>
-            <h2 className="text-xl font-bold text-slate-800 leading-tight mt-1">{selectedTask.title}</h2>
+            <h2 className="text-lg font-bold text-slate-800 leading-tight mt-1">{selectedTask.title}</h2>
           </div>
         </div>
 
         <div className="space-y-6 flex-1">
-          <div className={`rounded-xl p-4 border text-sm leading-relaxed
-            ${isGLP ? 'bg-red-50 border-red-100 text-red-900' : 'bg-slate-50 border-slate-100 text-slate-700'}`}>
-            {selectedTask.description}
-            
-            {selectedTask.id === 109 && (
-              <div className="mt-3 flex items-start gap-2 text-red-700 bg-red-100/50 p-2.5 rounded-lg text-xs font-bold">
-                <AlertOctagon className="w-4 h-4 shrink-0 mt-0.5" />
-                <p>Hito Crítico Regulatorio: Depende de disponibilidad del inspector estatal.</p>
-              </div>
-            )}
-          </div>
-
           <div className="grid grid-cols-2 gap-4">
             <div className="bg-white rounded-xl p-4 border border-slate-200 shadow-sm hover:border-blue-300 transition-colors">
               <div className="flex items-center gap-2 text-slate-400 mb-2">
@@ -239,7 +245,6 @@ export default function App() {
                 <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Inicio</span>
               </div>
               <p className="font-bold text-slate-800 capitalize">{formatDate(selectedTask.startDate)}</p>
-              <p className="text-xs text-slate-500 font-semibold mt-1 bg-slate-100 inline-block px-2 py-0.5 rounded">{formatTime(selectedTask.startDate)} hrs</p>
             </div>
             <div className="bg-white rounded-xl p-4 border border-slate-200 shadow-sm hover:border-blue-300 transition-colors">
               <div className="flex items-center gap-2 text-slate-400 mb-2">
@@ -247,7 +252,6 @@ export default function App() {
                 <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Fin (Est.)</span>
               </div>
               <p className="font-bold text-slate-800 capitalize">{formatDate(selectedTask.endDate)}</p>
-              <p className="text-xs text-slate-500 font-semibold mt-1 bg-slate-100 inline-block px-2 py-0.5 rounded">{formatTime(selectedTask.endDate)} hrs</p>
             </div>
           </div>
 
@@ -261,7 +265,6 @@ export default function App() {
                 className={`h-full rounded-full transition-all duration-1000 relative ${workType.color}`} 
                 style={{ width: `${selectedTask.progress}%` }}
               >
-                {/* Brillo decorativo en la barra */}
                 <div className="absolute top-0 left-0 right-0 h-1 bg-white/30 rounded-t-full"></div>
               </div>
             </div>
@@ -273,16 +276,16 @@ export default function App() {
                 <span className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-2">
                   <Factory className="w-4 h-4" /> Responsable
                 </span>
-                <span className="text-sm font-black text-slate-800">{selectedTask.assignee}</span>
+                <span className="text-xs font-black text-slate-800 text-right">{selectedTask.assignee}</span>
               </div>
               <div className="flex items-center justify-between p-1">
                 <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Estado Actual</span>
                 <span className={`text-[11px] px-3 py-1.5 rounded-full font-black uppercase tracking-widest shadow-sm
-                  ${selectedTask.status === 'completado' ? 'bg-emerald-100 text-emerald-700 border border-emerald-200' : 
-                    selectedTask.status === 'en_progreso' ? 'bg-amber-100 text-amber-700 border border-amber-200' : 
+                  ${status === 'completado' ? 'bg-emerald-100 text-emerald-700 border border-emerald-200' : 
+                    status === 'en_progreso' ? 'bg-amber-100 text-amber-700 border border-amber-200' : 
                     'bg-slate-100 text-slate-500 border border-slate-200'}`}
                 >
-                  {selectedTask.status.replace('_', ' ')}
+                  {status.replace('_', ' ')}
                 </span>
               </div>
             </div>
@@ -292,13 +295,15 @@ export default function App() {
     );
   };
 
+  // --- LÓGICA DE RENDERIZADO CON AGRUPACIÓN VISUAL ---
+  // No agrupamos los datos, pero visualmente colocamos un separador para saber a qué SubCategoría pertenecen.
+  let lastSubTypeRendered = null;
+
   return (
     <div className="min-h-screen bg-[#f1f5f9] p-4 md:p-6 font-sans text-slate-800">
-      <div className="max-w-[1600px] w-[98%] mx-auto space-y-6">
+      <div className="max-w-[1600px] w-[98%] mx-auto space-y-4">
         
-        {/* Cabecera Corporativa SOFTYS */}
         <header className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 relative overflow-hidden">
-          {/* Acento Corporativo */}
           <div className="absolute top-0 left-0 w-2 h-full bg-blue-700"></div>
           
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 relative z-10">
@@ -307,19 +312,15 @@ export default function App() {
                 <h1 className="text-3xl font-black text-slate-900 tracking-tight">SOFTYS</h1>
                 <span className="px-3 py-1 bg-blue-100 text-blue-800 text-xs font-black uppercase tracking-widest rounded-full">Planta Cañete</span>
               </div>
-              <h2 className="text-xl font-bold text-slate-700">Plan Maestro de Parada y Ruta Crítica GLP</h2>
-              <p className="text-slate-500 mt-1 font-medium text-sm flex items-center gap-2">
-                <Calendar className="w-4 h-4" />
-                Ventana de Ejecución: <strong className="text-slate-700">03 al 11 de Marzo, 2026</strong>
-              </p>
+              <h2 className="text-xl font-bold text-slate-700">Plan Maestro de Parada (Control Detallado)</h2>
             </div>
             
             <div className="flex gap-3">
-              <div className="text-center px-6 py-3 bg-red-50 rounded-xl border border-red-100 shadow-sm">
-                <span className="block text-2xl font-black text-red-600">
-                  {INITIAL_TASKS.filter(t => t.type === 'glp').length}
+              <div className="text-center px-6 py-3 bg-slate-50 rounded-xl border border-slate-200 shadow-sm">
+                <span className="block text-2xl font-black text-slate-600">
+                  {INITIAL_TASKS.length}
                 </span>
-                <span className="text-[10px] font-bold text-red-800 uppercase tracking-widest">Hitos GLP</span>
+                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Actividades</span>
               </div>
               <div className="text-center px-6 py-3 bg-emerald-50 rounded-xl border border-emerald-100 shadow-sm">
                 <span className="block text-2xl font-black text-emerald-600">
@@ -331,45 +332,66 @@ export default function App() {
           </div>
         </header>
 
-        {/* MODIFICACIÓN DE GRILLA: 4 columnas en total (3 para Gantt, 1 para Detalles) = 75% / 25% */}
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 md:gap-6">
           
-          {/* ZONA DEL GANTT (Ahora ocupa 3 de 4 columnas) */}
-          <div className="lg:col-span-3 space-y-4">
+          <div className="lg:col-span-3 space-y-3">
             
-            {/* Filtros */}
-            <div className="bg-white p-3 rounded-2xl shadow-sm border border-slate-200 flex flex-wrap gap-2">
+            {/* FILTROS PRINCIPALES */}
+            <div className="bg-white p-3 rounded-xl shadow-sm border border-slate-200 flex flex-wrap gap-2">
               <button 
-                onClick={() => setActiveFilter('all')}
-                className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${activeFilter === 'all' ? 'bg-slate-800 text-white shadow-md' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
+                onClick={() => handleMainFilterChange('all')}
+                className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${activeMainFilter === 'all' ? 'bg-slate-800 text-white shadow-md' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
               >
                 Vista Maestra
               </button>
               {Object.values(WORK_TYPES).map(type => (
                 <button
                   key={type.id}
-                  onClick={() => setActiveFilter(type.id)}
-                  className={`px-4 py-2 rounded-xl text-sm font-bold transition-all flex items-center gap-2
-                    ${activeFilter === type.id 
+                  onClick={() => handleMainFilterChange(type.id)}
+                  className={`px-4 py-2 rounded-lg text-sm font-bold transition-all flex items-center gap-2
+                    ${activeMainFilter === type.id 
                       ? `${type.color} text-white shadow-md` 
                       : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'}`}
                 >
-                  <type.icon className={`w-4 h-4 ${activeFilter === type.id ? 'text-white' : type.color.replace('bg-', 'text-')}`} />
+                  <type.icon className={`w-4 h-4 ${activeMainFilter === type.id ? 'text-white' : type.color.replace('bg-', 'text-')}`} />
                   {type.label}
                 </button>
               ))}
             </div>
 
-            {/* Contenedor del Gráfico con Scroll Horizontal para no apretar los días */}
+            {/* FILTROS SECUNDARIOS (Dinámicos: Solo aparecen si hay un Frente seleccionado) */}
+            {activeMainFilter !== 'all' && availableSubFilters.length > 0 && (
+              <div className="bg-white px-4 py-2 rounded-xl shadow-sm border border-slate-200 flex flex-wrap items-center gap-2 animate-fade-in">
+                <Filter className="w-4 h-4 text-slate-400 mr-1" />
+                <button 
+                  onClick={() => setActiveSubFilter('all')}
+                  className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all ${activeSubFilter === 'all' ? 'bg-slate-200 text-slate-800 shadow-inner' : 'bg-white text-slate-500 hover:bg-slate-50 border border-transparent hover:border-slate-200'}`}
+                >
+                  Todas las subcategorías
+                </button>
+                {availableSubFilters.map(sub => (
+                  <button
+                    key={sub}
+                    onClick={() => setActiveSubFilter(sub)}
+                    className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all border
+                      ${activeSubFilter === sub 
+                        ? 'bg-blue-50 text-blue-700 border-blue-200 shadow-sm' 
+                        : 'bg-white text-slate-500 border-slate-200 hover:bg-slate-50'}`}
+                  >
+                    {sub}
+                  </button>
+                ))}
+              </div>
+            )}
+
             <div className="bg-white rounded-2xl shadow-sm border border-slate-200 flex flex-col">
-              
               <div className="overflow-x-auto">
-                <div className="min-w-[900px]">
+                <div className="min-w-[1000px]">
                   
-                  {/* Cabecera de Días */}
-                  <div className="flex border-b border-slate-200 bg-slate-50 text-[10px] font-black text-slate-500 uppercase tracking-widest sticky top-0 z-30">
-                    <div className="w-80 p-4 border-r border-slate-200 flex items-center bg-slate-50 sticky left-0 z-20 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
-                      Actividad Programada
+                  {/* Cabecera del Gantt */}
+                  <div className="flex border-b border-slate-200 bg-slate-50 text-[10px] font-black text-slate-500 uppercase tracking-widest sticky top-0 z-30 shadow-sm">
+                    <div className="w-[380px] p-4 border-r border-slate-200 flex items-center bg-slate-50 sticky left-0 z-20">
+                      Listado Completo de Tareas ({filteredTasks.length})
                     </div>
                     <div className="flex-1 flex relative">
                       {timelineDays.map((day, idx) => (
@@ -381,12 +403,11 @@ export default function App() {
                     </div>
                   </div>
 
-                  {/* Filas de Tareas */}
-                  <div className="overflow-y-auto max-h-[600px] relative">
+                  {/* Cuerpo del Gantt */}
+                  <div className="overflow-y-auto max-h-[700px] relative pb-20">
                     
-                    {/* LÍNEA DE "HOY" (Sábado 07 de Marzo - Mitad del día) */}
                     <div className="absolute top-0 bottom-0 border-l-2 border-amber-500 z-0 pointer-events-none" 
-                         style={{ left: `calc(320px + ((100% - 320px) / 9) * 4.5)` }}>
+                         style={{ left: `calc(380px + ((100% - 380px) / 9) * 4.5)` }}>
                         <div className="bg-amber-500 text-white text-[10px] font-black px-2 py-0.5 rounded-b-md absolute -left-4 top-0 shadow-md">HOY</div>
                     </div>
 
@@ -395,68 +416,82 @@ export default function App() {
                       const isSelected = selectedTask?.id === task.id;
                       const workColor = WORK_TYPES[task.type.toUpperCase()].color;
                       const isGLP = task.type === 'glp';
+                      const status = getStatus(task.progress);
+                      
+                      // Lógica de separador visual por subCategoría (solo visible en "Todas las subcategorías")
+                      let renderSeparator = false;
+                      if (activeSubFilter === 'all' && task.subType !== lastSubTypeRendered) {
+                        renderSeparator = true;
+                        lastSubTypeRendered = task.subType;
+                      }
 
                       return (
-                        <div 
-                          key={task.id}
-                          onClick={() => setSelectedTask(task)}
-                          className={`flex border-b border-slate-100 cursor-pointer transition-colors hover:bg-slate-50 group relative z-10
-                            ${isSelected ? 'bg-blue-50/50' : ''}`}
-                        >
-                          {/* Columna Nombre (Fija a la izquierda) */}
-                          <div className="w-80 p-4 border-r border-slate-100 flex items-center gap-3 bg-white group-hover:bg-slate-50 sticky left-0 z-20 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)]">
-                            <div className={`w-2.5 h-2.5 rounded-full flex-shrink-0 shadow-sm ${workColor} ${task.status === 'pendiente' ? 'opacity-40' : ''}`}></div>
-                            <div className="min-w-0 flex-1">
-                              <p className={`font-bold text-sm truncate ${isGLP ? 'text-slate-800' : 'text-slate-700'}`}>
-                                {task.title}
-                              </p>
-                              <p className="text-[10px] font-bold text-slate-400 mt-0.5 uppercase tracking-wider">
-                                {task.assignee}
-                              </p>
+                        <React.Fragment key={task.id}>
+                          {/* Separador Visual de SubCategoría */}
+                          {renderSeparator && (
+                            <div className="flex border-b border-slate-200 bg-slate-100/70">
+                              <div className="w-[380px] px-4 py-2 border-r border-slate-200 sticky left-0 z-20 bg-slate-100 text-[10px] font-black uppercase text-slate-500 tracking-widest">
+                                {task.type.toUpperCase()} / <span className="text-slate-700">{task.subType}</span>
+                              </div>
+                              <div className="flex-1"></div>
                             </div>
-                          </div>
+                          )}
 
-                          {/* Columna Gantt */}
-                          <div className="flex-1 relative py-3 bg-slate-50/20">
-                            {/* Guías Verticales */}
-                            <div className="absolute inset-0 flex">
-                              {[...Array(9)].map((_, i) => (
-                                <div key={i} className={`flex-1 border-r border-slate-100 border-dashed last:border-0 ${i === 4 ? 'bg-amber-50/20' : ''}`}></div>
-                              ))}
-                            </div>
-
-                            {/* Barra de Progreso */}
-                            <div 
-                              className={`absolute h-7 rounded shadow-sm flex items-center justify-center text-[10px] font-black text-white transition-all duration-300 
-                                ${workColor} ${isSelected ? 'ring-2 ring-offset-2 ring-slate-400 shadow-lg scale-[1.01] z-30' : 'opacity-90 hover:opacity-100 z-10'}`}
-                              style={{ 
-                                left: position.left, 
-                                width: position.width,
-                                top: '50%',
-                                marginTop: '-14px',
-                                minWidth: '38px' // Asegura que "100%" siempre tenga espacio
-                              }}
-                            >
-                              {/* Sombreado de progreso */}
-                              <div 
-                                className="absolute top-0 left-0 bottom-0 bg-black/20 rounded-l"
-                                style={{ width: `${task.progress}%` }}
-                              ></div>
-                              
-                              {/* Textos dentro de la barra adaptables */}
-                              <span className="relative z-10 whitespace-nowrap drop-shadow-[0_1px_1px_rgba(0,0,0,0.8)] px-1">
-                                {task.progress}%
-                              </span>
-
-                              {/* Indicador Completado */}
-                              {task.status === 'completado' && (
-                                <div className="absolute -right-2 -top-2 w-4 h-4 bg-emerald-500 rounded-full border-2 border-white shadow-sm flex items-center justify-center">
-                                  <CheckCircle2 className="w-3 h-3 text-white" />
+                          {/* Fila Individual de Tarea */}
+                          <div 
+                            onClick={() => setSelectedTask(task)}
+                            className={`flex border-b border-slate-100 cursor-pointer transition-colors hover:bg-slate-50 group relative z-10
+                              ${isSelected ? 'bg-blue-50/50' : ''}`}
+                          >
+                            <div className="w-[380px] p-3 border-r border-slate-100 flex items-center gap-3 bg-white group-hover:bg-slate-50 sticky left-0 z-20 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.03)]">
+                              <div className={`w-2 h-2 rounded-full flex-shrink-0 shadow-sm ${workColor} ${status === 'pendiente' ? 'opacity-30' : ''}`}></div>
+                              <div className="min-w-0 flex-1">
+                                <p className={`font-bold text-xs truncate ${isGLP ? 'text-slate-800' : 'text-slate-700'}`} title={task.title}>
+                                  {task.title}
+                                </p>
+                                <div className="flex justify-between items-center mt-0.5">
+                                  <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider truncate">
+                                    {task.assignee}
+                                  </p>
+                                  <p className={`text-[9px] font-bold px-1.5 rounded ${status==='completado' ? 'text-emerald-600 bg-emerald-50' : status==='en_progreso' ? 'text-amber-600 bg-amber-50' : 'text-slate-400'}`}>
+                                    {task.progress}%
+                                  </p>
                                 </div>
-                              )}
+                              </div>
+                            </div>
+
+                            <div className="flex-1 relative py-2 bg-slate-50/20">
+                              <div className="absolute inset-0 flex">
+                                {[...Array(9)].map((_, i) => (
+                                  <div key={i} className={`flex-1 border-r border-slate-100 border-dashed last:border-0 ${i === 4 ? 'bg-amber-50/20' : ''}`}></div>
+                                ))}
+                              </div>
+
+                              <div 
+                                className={`absolute h-6 rounded shadow-sm flex items-center justify-center text-[9px] font-black text-white transition-all duration-300 
+                                  ${workColor} ${isSelected ? 'ring-2 ring-offset-1 ring-slate-400 shadow-md scale-[1.02] z-30' : 'opacity-85 hover:opacity-100 z-10'}`}
+                                style={{ 
+                                  left: position.left, 
+                                  width: position.width,
+                                  top: '50%',
+                                  marginTop: '-12px',
+                                  minWidth: '24px' 
+                                }}
+                              >
+                                <div 
+                                  className="absolute top-0 left-0 bottom-0 bg-black/20 rounded-l"
+                                  style={{ width: `${task.progress}%` }}
+                                ></div>
+                                
+                                {status === 'completado' && (
+                                  <div className="absolute -right-1 -top-1 w-3 h-3 bg-emerald-500 rounded-full border border-white shadow-sm flex items-center justify-center">
+                                    <CheckCircle2 className="w-2 h-2 text-white" />
+                                  </div>
+                                )}
+                              </div>
                             </div>
                           </div>
-                        </div>
+                        </React.Fragment>
                       );
                     })}
                   </div>
@@ -465,7 +500,6 @@ export default function App() {
             </div>
           </div>
 
-          {/* PANEL LATERAL DE DETALLES (Ahora ocupa 1 de 4 columnas, es más angosto) */}
           <div className="lg:col-span-1">
             {renderTaskDetails()}
           </div>
