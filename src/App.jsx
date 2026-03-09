@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Calendar, Clock, Database, Flame, Target, CheckCircle2, Factory, Filter } from 'lucide-react';
 
 // --- CONFIGURACIÓN DE FECHAS ---
@@ -122,6 +122,13 @@ export default function App() {
   const [selectedTask, setSelectedTask] = useState(INITIAL_TASKS.find(t=> t.progress > 0 && t.progress < 100) || INITIAL_TASKS[0]);
   const [activeMainFilter, setActiveMainFilter] = useState('all');
   const [activeSubFilter, setActiveSubFilter] = useState('all');
+  const [currentTime, setCurrentTime] = useState(new Date());
+
+  // Reloj interno para actualizar la línea de "HOY" automáticamente
+  useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(new Date()), 60000); // Se actualiza cada 60 segundos
+    return () => clearInterval(timer);
+  }, []);
 
   const timelineDays = ['03 Mar', '04 Mar', '05 Mar', '06 Mar', '07 Mar', '08 Mar', '09 Mar', '10 Mar', '11 Mar'];
 
@@ -175,6 +182,22 @@ export default function App() {
     const safeWidth = Math.min(100 - safeLeft, (duration / totalDuration) * 100);
     
     return { left: `${safeLeft}%`, width: `${safeWidth}%` };
+  };
+
+  // Calcula dinámicamente dónde debe estar la línea de HOY
+  const getTodayPosition = () => {
+    const start = new Date(PROJECT_START).getTime();
+    const end = new Date(PROJECT_END).getTime();
+    const now = currentTime.getTime();
+
+    // Ocultar la línea si estamos fuera de las fechas de la parada de planta
+    if (now < start || now > end) return null;
+
+    const offsetMs = now - start;
+    const offsetDays = offsetMs / (1000 * 60 * 60 * 24);
+    
+    // 380px es el ancho de la columna de títulos. El resto se divide entre 9 días.
+    return `calc(380px + ((100% - 380px) / 9) * ${offsetDays})`;
   };
 
   const renderTaskDetails = () => {
@@ -358,21 +381,30 @@ export default function App() {
                       Listado Completo de Tareas ({filteredTasks.length})
                     </div>
                     <div className="flex-1 flex relative">
-                      {timelineDays.map((day, idx) => (
-                        <div key={idx} className={`flex-1 py-4 text-center border-r border-slate-200 last:border-0 
-                          ${day === '07 Mar' ? 'bg-amber-50/50 text-amber-700' : ''}`}>
-                          {day}
-                        </div>
-                      ))}
+                      {timelineDays.map((day, idx) => {
+                        // Resaltar el día actual en la cabecera
+                        const currentDateString = currentTime.toLocaleDateString('es-ES', { day: '2-digit', month: 'short' });
+                        const isToday = day.toLowerCase() === currentDateString.toLowerCase();
+                        
+                        return (
+                          <div key={idx} className={`flex-1 py-4 text-center border-r border-slate-200 last:border-0 transition-colors
+                            ${isToday ? 'bg-amber-50/80 text-amber-700 shadow-inner' : ''}`}>
+                            {day}
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
 
                   <div className="overflow-y-auto max-h-[700px] relative pb-20">
                     
-                    <div className="absolute top-0 bottom-0 border-l-2 border-amber-500 z-0 pointer-events-none" 
-                         style={{ left: `calc(380px + ((100% - 380px) / 9) * 4.5)` }}>
-                        <div className="bg-amber-500 text-white text-[10px] font-black px-2 py-0.5 rounded-b-md absolute -left-4 top-0 shadow-md">HOY</div>
-                    </div>
+                    {/* LÍNEA DE "HOY" DINÁMICA */}
+                    {getTodayPosition() && (
+                      <div className="absolute top-0 bottom-0 border-l-2 border-amber-500 z-0 pointer-events-none transition-all duration-1000" 
+                           style={{ left: getTodayPosition() }}>
+                          <div className="bg-amber-500 text-white text-[10px] font-black px-2 py-0.5 rounded-b-md absolute -left-4 top-0 shadow-md">HOY</div>
+                      </div>
+                    )}
 
                     {filteredTasks.map((task) => {
                       const position = calculatePosition(task.startDate, task.endDate);
