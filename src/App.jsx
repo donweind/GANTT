@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Calendar, Clock, Database, Flame, Target, CheckCircle2, Factory, Filter, FileText, MessageSquare, Send, BarChart3 } from 'lucide-react';
+import { Calendar, Clock, Database, Flame, Target, CheckCircle2, Factory, Filter, FileText, MessageSquare, Send, BarChart3, AlertTriangle, AlertOctagon } from 'lucide-react';
 
 // --- CONFIGURACIÓN DE FECHAS ---
 const PROJECT_START = '2026-03-03T00:00:00';
@@ -8,66 +8,57 @@ const PROJECT_END = '2026-03-11T23:59:59';
 const WORK_TYPES = {
   TANQUES: { id: 'tanques', label: 'Tanques e Instalaciones', color: 'bg-blue-600', icon: Database },
   CALDERA: { id: 'caldera', label: 'Caldera', color: 'bg-orange-500', icon: Flame },
-  QUEMADOR: { id: 'quemador', label: 'Quemador de Capota', color: 'bg-purple-600', icon: Target },
+  QUEMADOR: { id: 'quemador', label: 'Capota', color: 'bg-purple-600', icon: Target },
 };
 
 // --- DATA MASTER: FRENTES DE PARADA ---
 const INITIAL_TASKS = [
   // ==================== FRENTE 1: TANQUES E INSTALACIONES ====================
-  // Preparación
   { id: 101, type: 'tanques', subType: 'Preparación', title: 'Permisos de alto riesgo', progress: 100, assignee: 'Diego Vargas', startDate: '2026-03-06T08:00:00', endDate: '2026-03-06T18:00:00' },
   { id: 102, type: 'tanques', subType: 'Preparación', title: 'Habilitación de personal calificado', progress: 100, assignee: 'Diego Vargas', startDate: '2026-03-06T08:00:00', endDate: '2026-03-06T18:00:00' },
   { id: 103, type: 'tanques', subType: 'Preparación', title: 'Habilitación de equipos de rescate y seguridad', progress: 100, assignee: 'Diego Vargas', startDate: '2026-03-06T08:00:00', endDate: '2026-03-06T18:00:00' },
   { id: 104, type: 'tanques', subType: 'Preparación', title: 'Inducciones y requisitos', progress: 100, assignee: 'Diego Vargas', startDate: '2026-03-06T08:00:00', endDate: '2026-03-06T18:00:00' },
-  // Reparación de Tanques
   { id: 105, type: 'tanques', subType: 'Reparación de Tanques', title: 'Soldadura interna de Tq2', progress: 100, assignee: 'Diego Vargas', startDate: '2026-03-06T08:00:00', endDate: '2026-03-07T18:00:00' },
   { id: 106, type: 'tanques', subType: 'Reparación de Tanques', title: 'Soldadura interna de Tq1', progress: 100, assignee: 'Diego Vargas', startDate: '2026-03-07T08:00:00', endDate: '2026-03-09T18:00:00' },
   { id: 107, type: 'tanques', subType: 'Reparación de Tanques', title: 'Instalación de válvulas de seguridad Tq2', progress: 100, assignee: 'Diego Vargas', startDate: '2026-03-07T08:00:00', endDate: '2026-03-08T18:00:00' },
-  { id: 108, type: 'tanques', subType: 'Reparación de Tanques', title: 'Instalación de válvulas de seguridad Tq1', progress: 80, assignee: 'Diego Vargas', startDate: '2026-03-09T08:00:00', endDate: '2026-03-10T18:00:00' },
+  { id: 108, type: 'tanques', subType: 'Reparación de Tanques', title: 'Instalación de válvulas de seguridad Tq1', progress: 100, assignee: 'Diego Vargas', startDate: '2026-03-09T08:00:00', endDate: '2026-03-10T18:00:00' },
   { id: 109, type: 'tanques', subType: 'Reparación de Tanques', title: 'Instalación de válvula reguladora de presión GLP Tq1', progress: 100, assignee: 'Diego Vargas', startDate: '2026-03-09T08:00:00', endDate: '2026-03-09T18:00:00' },
   { id: 110, type: 'tanques', subType: 'Reparación de Tanques', title: 'Instalación de válvula reguladora de presión GLP Tq2', progress: 100, assignee: 'Diego Vargas', startDate: '2026-03-09T08:00:00', endDate: '2026-03-09T18:00:00' },
-  { id: 111, type: 'tanques', subType: 'Reparación de Tanques', title: 'Instalación de shutoff Tq1', progress: 80, assignee: 'Diego Vargas', startDate: '2026-03-09T08:00:00', endDate: '2026-03-09T18:00:00' },
+  { id: 111, type: 'tanques', subType: 'Reparación de Tanques', title: 'Instalación de shutoff Tq1', progress: 100, assignee: 'Diego Vargas', startDate: '2026-03-09T08:00:00', endDate: '2026-03-09T18:00:00' },
   { id: 112, type: 'tanques', subType: 'Reparación de Tanques', title: 'Instalación de shutoff Tq2', progress: 100, assignee: 'Diego Vargas', startDate: '2026-03-09T08:00:00', endDate: '2026-03-09T18:00:00' },
-  { id: 113, type: 'tanques', subType: 'Reparación de Tanques', title: 'Instalación de valvulería y accesorios', progress: 70, assignee: 'Diego Vargas', startDate: '2026-03-07T08:00:00', endDate: '2026-03-10T18:00:00' },
-  { id: 114, type: 'tanques', subType: 'Reparación de Tanques', title: 'Instalación de instrumentación analógica', progress: 80, assignee: 'Diego Vargas', startDate: '2026-03-07T08:00:00', endDate: '2026-03-10T18:00:00' },
-  // Reparación de Instalaciones
-  { id: 115, type: 'tanques', subType: 'Reparación de instalaciones', title: 'Recuperación de pipping', progress: 85, assignee: 'Diego Vargas', startDate: '2026-03-06T08:00:00', endDate: '2026-03-10T18:00:00' },
-  { id: 116, type: 'tanques', subType: 'Reparación de instalaciones', title: 'Habilitación de material para el dimensionamiento', progress: 80, assignee: 'Diego Vargas', startDate: '2026-03-07T08:00:00', endDate: '2026-03-10T18:00:00' },
-  { id: 117, type: 'tanques', subType: 'Reparación de instalaciones', title: 'Montaje de tuberías nuevas', progress: 70, assignee: 'Diego Vargas', startDate: '2026-03-09T08:00:00', endDate: '2026-03-10T18:00:00' },
-  { id: 118, type: 'tanques', subType: 'Reparación de instalaciones', title: 'Recuperación de bridas, pernería, aislamientos', progress: 90, assignee: 'Diego Vargas', startDate: '2026-03-06T08:00:00', endDate: '2026-03-09T18:00:00' },
-  { id: 119, type: 'tanques', subType: 'Reparación de instalaciones', title: 'Cambio de válvulas reguladoras', progress: 80, assignee: 'Diego Vargas', startDate: '2026-03-09T08:00:00', endDate: '2026-03-09T18:00:00' },
-  { id: 120, type: 'tanques', subType: 'Reparación de instalaciones', title: 'Cambio de valvulería y accesorios de zona de descarga', progress: 80, assignee: 'Diego Vargas', startDate: '2026-03-06T08:00:00', endDate: '2026-03-09T18:00:00' },
-  { id: 121, type: 'tanques', subType: 'Reparación de instalaciones', title: 'Cambio de valvulería y accesorios de zona de vaporizadores', progress: 80, assignee: 'Diego Vargas', startDate: '2026-03-06T08:00:00', endDate: '2026-03-09T18:00:00' },
-  // Seguridad de instalaciones
-  { id: 122, type: 'tanques', subType: 'Seguridad de instalaciones', title: 'Reparación de sensores de gas / detectores de flama', progress: 50, assignee: 'Diego Vargas', startDate: '2026-03-06T08:00:00', endDate: '2026-03-09T18:00:00' },
-  { id: 123, type: 'tanques', subType: 'Seguridad de instalaciones', title: 'Instalación de sensórica', progress: 0, assignee: 'Diego Vargas', startDate: '2026-03-10T08:00:00', endDate: '2026-03-10T18:00:00' },
+  { id: 113, type: 'tanques', subType: 'Reparación de Tanques', title: 'Instalación de valvulería y accesorios', progress: 90, assignee: 'Diego Vargas', startDate: '2026-03-07T08:00:00', endDate: '2026-03-11T18:00:00' },
+  { id: 114, type: 'tanques', subType: 'Reparación de Tanques', title: 'Instalación de instrumentación analógica', progress: 95, assignee: 'Diego Vargas', startDate: '2026-03-07T08:00:00', endDate: '2026-03-11T18:00:00' },
+  { id: 115, type: 'tanques', subType: 'Reparación de instalaciones', title: 'Recuperación de pipping', progress: 100, assignee: 'Diego Vargas', startDate: '2026-03-06T08:00:00', endDate: '2026-03-10T18:00:00' },
+  { id: 116, type: 'tanques', subType: 'Reparación de instalaciones', title: 'Habilitación de material para el dimensionamiento', progress: 100, assignee: 'Diego Vargas', startDate: '2026-03-07T08:00:00', endDate: '2026-03-10T18:00:00' },
+  { id: 117, type: 'tanques', subType: 'Reparación de instalaciones', title: 'Montaje de tuberías nuevas', progress: 100, assignee: 'Diego Vargas', startDate: '2026-03-09T08:00:00', endDate: '2026-03-10T18:00:00' },
+  { id: 118, type: 'tanques', subType: 'Reparación de instalaciones', title: 'Recuperación de bridas, pernería, aislamientos', progress: 100, assignee: 'Diego Vargas', startDate: '2026-03-06T08:00:00', endDate: '2026-03-09T18:00:00' },
+  { id: 119, type: 'tanques', subType: 'Reparación de instalaciones', title: 'Cambio de válvulas reguladoras', progress: 100, assignee: 'Diego Vargas', startDate: '2026-03-09T08:00:00', endDate: '2026-03-09T18:00:00' },
+  { id: 120, type: 'tanques', subType: 'Reparación de instalaciones', title: 'Cambio de valvulería y accesorios de zona de descarga', progress: 100, assignee: 'Diego Vargas', startDate: '2026-03-06T08:00:00', endDate: '2026-03-09T18:00:00' },
+  { id: 120.5, type: 'tanques', subType: 'Reparación de instalaciones', title: 'Instalacion y acondicionamiento de vaporizador', progress: 0, assignee: 'Diego Vargas', startDate: '2026-03-10T08:00:00', endDate: '2026-03-11T18:00:00' },
+  { id: 121, type: 'tanques', subType: 'Reparación de instalaciones', title: 'Cambio de valvulería y accesorios de zona de vaporizadores', progress: 100, assignee: 'Diego Vargas', startDate: '2026-03-06T08:00:00', endDate: '2026-03-09T18:00:00' },
+  { id: 122, type: 'tanques', subType: 'Seguridad de instalaciones', title: 'Reparación de sensores de gas / detectores de flama', progress: 70, assignee: 'Diego Vargas', startDate: '2026-03-06T08:00:00', endDate: '2026-03-11T18:00:00' },
   { id: 124, type: 'tanques', subType: 'Seguridad de instalaciones', title: 'Prueba hidrostática de Tq1', progress: 0, assignee: 'Diego Vargas', startDate: '2026-03-10T08:00:00', endDate: '2026-03-10T18:00:00' },
-  { id: 125, type: 'tanques', subType: 'Seguridad de instalaciones', title: 'Prueba hidrostática de Tq2', progress: 0, assignee: 'Diego Vargas', startDate: '2026-03-10T08:00:00', endDate: '2026-03-10T18:00:00' },
-  { id: 126, type: 'tanques', subType: 'Seguridad de instalaciones', title: 'Prueba hidrostática de (descarga a tanques)', progress: 0, assignee: 'Diego Vargas', startDate: '2026-03-10T08:00:00', endDate: '2026-03-10T18:00:00' },
+  { id: 125, type: 'tanques', subType: 'Seguridad de instalaciones', title: 'Prueba hidrostática de Tq2', progress: 100, assignee: 'Diego Vargas', startDate: '2026-03-10T08:00:00', endDate: '2026-03-10T18:00:00' },
+  { id: 126, type: 'tanques', subType: 'Seguridad de instalaciones', title: 'Prueba hidrostática de (descarga a tanques)', progress: 100, assignee: 'Diego Vargas', startDate: '2026-03-10T08:00:00', endDate: '2026-03-10T18:00:00' },
   { id: 127, type: 'tanques', subType: 'Seguridad de instalaciones', title: 'Prueba hidrostática de (Tanques a Vaporizadores)', progress: 0, assignee: 'Diego Vargas', startDate: '2026-03-10T08:00:00', endDate: '2026-03-10T18:00:00' },
-  { id: 128, type: 'tanques', subType: 'Seguridad de instalaciones', title: 'Prueba hidrostática de (Tanques a Calderas)', progress: 0, assignee: 'Diego Vargas', startDate: '2026-03-10T08:00:00', endDate: '2026-03-10T18:00:00' },
-  { id: 129, type: 'tanques', subType: 'Seguridad de instalaciones', title: 'Prueba hidrostática de (Tanques a Capota)', progress: 0, assignee: 'Diego Vargas', startDate: '2026-03-10T08:00:00', endDate: '2026-03-10T18:00:00' },
+  { id: 129, type: 'tanques', subType: 'Seguridad de instalaciones', title: 'Prueba hidrostática de (Tanques a Capota)', progress: 50, assignee: 'Diego Vargas', startDate: '2026-03-10T08:00:00', endDate: '2026-03-11T18:00:00' },
 
   // ==================== FRENTE 2: CALDERAS ====================
-  // Mecánica
   { id: 201, type: 'caldera', subType: 'Mecánica', title: 'Aislamiento de caldera.', progress: 100, assignee: 'Christian', startDate: '2026-03-06T08:00:00', endDate: '2026-03-06T18:00:00' },
   { id: 201.5, type: 'caldera', subType: 'Mecánica', title: 'Prueba hidrostatica de economizador', progress: 100, assignee: 'Christian', startDate: '2026-03-06T08:00:00', endDate: '2026-03-07T18:00:00' },
   { id: 202, type: 'caldera', subType: 'Mecánica', title: 'Prueba hidrostatica de la caldera.', progress: 100, assignee: 'Christian', startDate: '2026-03-06T08:00:00', endDate: '2026-03-07T18:00:00' },
   { id: 203, type: 'caldera', subType: 'Mecánica', title: 'Identificación y reparación de daños', progress: 100, assignee: 'Christian', startDate: '2026-03-06T08:00:00', endDate: '2026-03-07T18:00:00' },
   { id: 204, type: 'caldera', subType: 'Mecánica', title: 'Calibración de válvulas de seguridad', progress: 100, assignee: 'Christian', startDate: '2026-03-06T08:00:00', endDate: '2026-03-07T18:00:00' },
   { id: 205, type: 'caldera', subType: 'Mecánica', title: 'Mtto válvulas check', progress: 100, assignee: 'Christian', startDate: '2026-03-06T08:00:00', endDate: '2026-03-07T18:00:00' },
-  // Eléctrica
   { id: 206, type: 'caldera', subType: 'Eléctrica', title: 'Inspección de amperajes, acoplamientos y medición de aislamientos.', progress: 100, assignee: 'Christian', startDate: '2026-03-06T08:00:00', endDate: '2026-03-08T18:00:00' },
   { id: 207, type: 'caldera', subType: 'Eléctrica', title: 'Inspección general de gabinetes eléctricos', progress: 100, assignee: 'Christian', startDate: '2026-03-06T08:00:00', endDate: '2026-03-08T18:00:00' },
   { id: 208, type: 'caldera', subType: 'Eléctrica', title: 'Calibración de instrumentación análoga', progress: 100, assignee: 'Christian', startDate: '2026-03-06T08:00:00', endDate: '2026-03-08T18:00:00' },
   { id: 209, type: 'caldera', subType: 'Eléctrica', title: 'Revisión de sistemas de seguridad: valv control, termostatos, presostatos', progress: 100, assignee: 'Christian', startDate: '2026-03-06T08:00:00', endDate: '2026-03-08T18:00:00' },
   { id: 210, type: 'caldera', subType: 'Eléctrica', title: 'Megado de motores', progress: 100, assignee: 'Christian', startDate: '2026-03-06T08:00:00', endDate: '2026-03-08T18:00:00' },
   { id: 211, type: 'caldera', subType: 'Eléctrica', title: 'Revisión y ajustes del sistema neumático', progress: 100, assignee: 'Christian', startDate: '2026-03-06T08:00:00', endDate: '2026-03-08T18:00:00' },
-  // Control
   { id: 212, type: 'caldera', subType: 'Control', title: 'Pruebas de encendido de llama, barrido de gases.', progress: 0, assignee: 'Christian', startDate: '2026-03-11T08:00:00', endDate: '2026-03-11T18:00:00' },
   { id: 213, type: 'caldera', subType: 'Control', title: 'Pruebas de sobre presión por gas y aire.', progress: 0, assignee: 'Christian', startDate: '2026-03-11T08:00:00', endDate: '2026-03-11T18:00:00' },
   { id: 214, type: 'caldera', subType: 'Control', title: 'Pruebas de sistema de apagado de emergencia.', progress: 0, assignee: 'Christian', startDate: '2026-03-11T08:00:00', endDate: '2026-03-11T18:00:00' },
-  // Quemador
   { id: 215, type: 'caldera', subType: 'Quemador', title: 'Revisión y mtto de tren de combustión', progress: 100, assignee: 'Christian', startDate: '2026-03-06T08:00:00', endDate: '2026-03-07T18:00:00' },
   { id: 216, type: 'caldera', subType: 'Quemador', title: 'Mtto de filtros de gas.', progress: 100, assignee: 'Christian', startDate: '2026-03-06T08:00:00', endDate: '2026-03-07T18:00:00' },
   { id: 217, type: 'caldera', subType: 'Quemador', title: 'Desmontaje de cabezal de combustión.', progress: 100, assignee: 'Christian', startDate: '2026-03-06T08:00:00', endDate: '2026-03-07T18:00:00' },
@@ -76,35 +67,30 @@ const INITIAL_TASKS = [
   { id: 220, type: 'caldera', subType: 'Quemador', title: 'Calibración de electrodos.', progress: 100, assignee: 'Christian', startDate: '2026-03-06T08:00:00', endDate: '2026-03-07T18:00:00' },
   { id: 221, type: 'caldera', subType: 'Quemador', title: 'Revisión de sistemas de seguridades de quemador.', progress: 100, assignee: 'Christian', startDate: '2026-03-06T08:00:00', endDate: '2026-03-07T18:00:00' },
   { id: 222, type: 'caldera', subType: 'Quemador', title: 'Pruebas de ventilador.', progress: 100, assignee: 'Christian', startDate: '2026-03-06T08:00:00', endDate: '2026-03-07T18:00:00' },
-  // Ventilador
   { id: 223, type: 'caldera', subType: 'Ventilador', title: 'Balanceo dinámico de ventilador.', progress: 0, assignee: 'Christian', startDate: '2026-03-11T08:00:00', endDate: '2026-03-11T18:00:00' },
-  { id: 224, type: 'caldera', subType: 'Ventilador', title: 'Megado de motor.', progress: 0, assignee: 'Christian', startDate: '2026-03-07T08:00:00', endDate: '2026-03-07T18:00:00' },
-  { id: 225, type: 'caldera', subType: 'Ventilador', title: 'Limpieza de compartimiento de ventilación.', progress: 0, assignee: 'Christian', startDate: '2026-03-07T08:00:00', endDate: '2026-03-07T18:00:00' },
-  // Refractarios
-  { id: 226, type: 'caldera', subType: 'Refractarios', title: 'Desmontaje de refractarios.', progress: 50, assignee: 'Christian', startDate: '2026-03-06T08:00:00', endDate: '2026-03-07T18:00:00' },
-  { id: 227, type: 'caldera', subType: 'Refractarios', title: 'Reparación de hogar de fuego', progress: 0, assignee: 'Christian', startDate: '2026-03-07T08:00:00', endDate: '2026-03-07T18:00:00' },
-  { id: 228, type: 'caldera', subType: 'Refractarios', title: 'Curado y resanes.', progress: 0, assignee: 'Christian', startDate: '2026-03-07T08:00:00', endDate: '2026-03-07T18:00:00' },
-  // Economizador
-  { id: 229, type: 'caldera', subType: 'Economizador', title: 'Desconexionado y aislamiento del equipo', progress: 20, assignee: 'Christian', startDate: '2026-03-07T08:00:00', endDate: '2026-03-07T18:00:00' },
-  { id: 230, type: 'caldera', subType: 'Economizador', title: 'Prueba hidrostatica a 250 psi.', progress: 10, assignee: 'Christian', startDate: '2026-03-07T08:00:00', endDate: '2026-03-07T18:00:00' },
-  { id: 231, type: 'caldera', subType: 'Economizador', title: 'Detección de fugas y reparaciones.', progress: 0, assignee: 'Christian', startDate: '2026-03-07T08:00:00', endDate: '2026-03-07T18:00:00' },
-  { id: 232, type: 'caldera', subType: 'Economizador', title: 'Conexionado y cierre de equipo', progress: 0, assignee: 'Christian', startDate: '2026-03-07T08:00:00', endDate: '2026-03-07T18:00:00' },
+  { id: 224, type: 'caldera', subType: 'Ventilador', title: 'Megado de motor.', progress: 100, assignee: 'Christian', startDate: '2026-03-07T08:00:00', endDate: '2026-03-07T18:00:00' },
+  { id: 225, type: 'caldera', subType: 'Ventilador', title: 'Limpieza de compartimiento de ventilación.', progress: 100, assignee: 'Christian', startDate: '2026-03-07T08:00:00', endDate: '2026-03-07T18:00:00' },
+  { id: 226, type: 'caldera', subType: 'Refractarios', title: 'Desmontaje de refractarios.', progress: 100, assignee: 'Christian', startDate: '2026-03-06T08:00:00', endDate: '2026-03-07T18:00:00' },
+  { id: 227, type: 'caldera', subType: 'Refractarios', title: 'Reparación de hogar de fuego', progress: 100, assignee: 'Christian', startDate: '2026-03-07T08:00:00', endDate: '2026-03-07T18:00:00' },
+  { id: 228, type: 'caldera', subType: 'Refractarios', title: 'Curado y resanes.', progress: 100, assignee: 'Christian', startDate: '2026-03-07T08:00:00', endDate: '2026-03-07T18:00:00' },
+  { id: 229, type: 'caldera', subType: 'Economizador', title: 'Desconexionado y aislamiento del equipo', progress: 100, assignee: 'Christian', startDate: '2026-03-07T08:00:00', endDate: '2026-03-07T18:00:00' },
+  { id: 230, type: 'caldera', subType: 'Economizador', title: 'Prueba hidrostatica a 250 psi.', progress: 100, assignee: 'Christian', startDate: '2026-03-07T08:00:00', endDate: '2026-03-07T18:00:00' },
+  { id: 231, type: 'caldera', subType: 'Economizador', title: 'Detección de fugas y reparaciones.', progress: 100, assignee: 'Christian', startDate: '2026-03-07T08:00:00', endDate: '2026-03-07T18:00:00' },
+  { id: 232, type: 'caldera', subType: 'Economizador', title: 'Conexionado y cierre de equipo', progress: 100, assignee: 'Christian', startDate: '2026-03-07T08:00:00', endDate: '2026-03-07T18:00:00' },
 
-  // ==================== FRENTE 3: QUEMADOR DE CAPOTA ====================
-  // Mecánica
+  // ==================== FRENTE 3: CAPOTA ====================
   { id: 301, type: 'quemador', subType: 'Mecánica', title: 'Desmontaje de quemador.', progress: 100, assignee: 'Javier', startDate: '2026-03-07T08:00:00', endDate: '2026-03-08T18:00:00' },
   { id: 302, type: 'quemador', subType: 'Mecánica', title: 'Limpieza de conos y difusores.', progress: 100, assignee: 'Javier', startDate: '2026-03-07T08:00:00', endDate: '2026-03-08T18:00:00' },
   { id: 303, type: 'quemador', subType: 'Mecánica', title: 'Calibración de toberas de combustión', progress: 100, assignee: 'Javier', startDate: '2026-03-07T08:00:00', endDate: '2026-03-08T18:00:00' },
   { id: 304, type: 'quemador', subType: 'Mecánica', title: 'Revisión de la ignición.', progress: 100, assignee: 'Javier', startDate: '2026-03-07T08:00:00', endDate: '2026-03-08T18:00:00' },
   { id: 305, type: 'quemador', subType: 'Mecánica', title: 'Limpieza del sistema de ventilación forzada.', progress: 100, assignee: 'Javier', startDate: '2026-03-07T08:00:00', endDate: '2026-03-08T18:00:00' },
-  // Control
-  { id: 306, type: 'quemador', subType: 'Control', title: 'Calibración de curva de arranque.', progress: 100, assignee: 'Javier', startDate: '2026-03-07T08:00:00', endDate: '2026-03-11T18:00:00' },
+  { id: 306, type: 'quemador', subType: 'Control', title: 'Calibración de curva de arranque.', progress: 0, assignee: 'Javier', startDate: '2026-03-07T08:00:00', endDate: '2026-03-11T18:00:00' },
   { id: 307, type: 'quemador', subType: 'Control', title: 'Revisión del sistema de corte por emergencia.', progress: 100, assignee: 'Javier', startDate: '2026-03-07T08:00:00', endDate: '2026-03-11T18:00:00' },
   { id: 308, type: 'quemador', subType: 'Control', title: 'Revisión del control del flujo de GLP', progress: 100, assignee: 'Javier', startDate: '2026-03-07T08:00:00', endDate: '2026-03-11T18:00:00' },
-  // Seguridad
-  { id: 309, type: 'quemador', subType: 'Seguridad', title: 'Revisión de sistemas de emergencia.', progress: 85, assignee: 'Javier', startDate: '2026-03-07T08:00:00', endDate: '2026-03-11T18:00:00' },
+  { id: 309, type: 'quemador', subType: 'Seguridad', title: 'Revisión de valvulas de bloqueo tren de gas GLP', progress: 100, assignee: 'Javier', startDate: '2026-03-07T08:00:00', endDate: '2026-03-11T18:00:00' },
   { id: 310, type: 'quemador', subType: 'Seguridad', title: 'Limpieza', progress: 100, assignee: 'Javier', startDate: '2026-03-07T08:00:00', endDate: '2026-03-07T18:00:00' },
   { id: 311, type: 'quemador', subType: 'Seguridad', title: 'Pruebas de operación.', progress: 0, assignee: 'Javier', startDate: '2026-03-11T08:00:00', endDate: '2026-03-11T18:00:00' },
+  { id: 312, type: 'quemador', subType: 'Seguridad', title: 'Revision mantenimiento valvulas reguladoras de gas', progress: 100, assignee: 'Javier', startDate: '2026-03-06T08:00:00', endDate: '2026-03-10T18:00:00' },
 ];
 
 const getStatus = (progress) => {
@@ -126,7 +112,6 @@ export default function App() {
   const [activeSubFilter, setActiveSubFilter] = useState('all');
   const [currentTime, setCurrentTime] = useState(new Date());
 
-  // --- BITÁCORA DE COMENTARIOS ACTUALIZADA (SIN HORA, SIN IMÁGENES) ---
   const [comments, setComments] = useState([
     { 
       id: 1, 
@@ -147,7 +132,22 @@ export default function App() {
   
   const [newComment, setNewComment] = useState('');
 
+  // Efecto anti-traducción e inyección del reloj
   useEffect(() => {
+    // 1. Evitar tajantemente que Chrome intente traducir la página
+    document.documentElement.lang = 'es';
+    document.documentElement.setAttribute('translate', 'no');
+    document.documentElement.className = 'notranslate';
+    
+    let meta = document.querySelector('meta[name="google"]');
+    if (!meta) {
+      meta = document.createElement('meta');
+      meta.name = 'google';
+      meta.content = 'notranslate';
+      document.head.appendChild(meta);
+    }
+
+    // 2. Reloj interno
     const timer = setInterval(() => setCurrentTime(new Date()), 60000);
     return () => clearInterval(timer);
   }, []);
@@ -171,6 +171,13 @@ export default function App() {
     }
     return tasks.sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
   }, [activeMainFilter, activeSubFilter]);
+
+  const pftTasks = useMemo(() => {
+    return INITIAL_TASKS.filter(task => {
+      const taskEndDate = new Date(task.endDate).getTime();
+      return task.progress < 100 && currentTime.getTime() > taskEndDate;
+    }).sort((a, b) => new Date(a.endDate) - new Date(b.endDate));
+  }, [currentTime]);
 
   const dynamicTotalActivities = filteredTasks.length;
   const dynamicAverageProgress = dynamicTotalActivities > 0 
@@ -213,7 +220,6 @@ export default function App() {
   const handleAddComment = (e) => {
     e.preventDefault();
     if (!newComment.trim()) return;
-    
     setComments([...comments, { id: Date.now(), author: 'Usuario Actual', text: newComment }]);
     setNewComment('');
   };
@@ -294,7 +300,6 @@ export default function App() {
     );
   };
 
-  // --- VISTA DE RESUMEN EJECUTIVO ---
   const renderResumenView = () => {
     const getAvancePorFrente = (type) => {
       const tareas = INITIAL_TASKS.filter(t => t.type === type);
@@ -309,8 +314,6 @@ export default function App() {
 
     return (
       <div className="lg:col-span-4 grid grid-cols-1 lg:grid-cols-2 gap-6 animate-fade-in">
-        
-        {/* PANEL IZQUIERDO: RESUMEN EJECUTIVO */}
         <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col">
           <div className="bg-slate-800 p-5 flex items-center gap-3">
             <BarChart3 className="w-6 h-6 text-blue-400" />
@@ -320,7 +323,6 @@ export default function App() {
             <p className="text-lg text-slate-700 leading-relaxed">
               Al corte de la fecha actual, el Plan Maestro de Parada en <strong className="text-slate-900">Planta Cañete</strong> se encuentra en ejecución con un avance consolidado del <strong className="text-2xl text-blue-600 bg-blue-50 px-2 py-1 rounded-lg">{avanceGlobal}%</strong> respecto al total de las {INITIAL_TASKS.length} actividades programadas.
             </p>
-            
             <div className="bg-slate-50 rounded-xl p-6 border border-slate-100">
               <h3 className="text-xs font-black text-slate-500 uppercase tracking-widest mb-4">Desglose por Frentes Críticos:</h3>
               <ul className="space-y-4">
@@ -347,23 +349,19 @@ export default function App() {
                 </li>
               </ul>
             </div>
-
             <p className="text-sm text-slate-600 leading-relaxed border-l-4 border-emerald-400 pl-4 py-1 bg-emerald-50/50">
               <strong>Nota Técnica:</strong> Las fases mecánicas y eléctricas muestran un excelente nivel de cumplimiento alineado a lo programado. Las etapas de pruebas hidrostáticas finales y de operación de seguridad se encuentran pendientes de ejecución de acuerdo a la ventana de tiempo del cronograma.
             </p>
           </div>
         </div>
 
-        {/* PANEL DERECHO: COMENTARIOS Y BITÁCORA */}
         <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col h-[600px]">
           <div className="bg-slate-50 p-5 border-b border-slate-200 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <MessageSquare className="w-6 h-6 text-slate-600" />
               <h2 className="text-xl font-bold text-slate-800 tracking-wide">Comentarios y Bitácora</h2>
             </div>
-            <span className="text-xs font-bold text-slate-500 bg-slate-200 px-2 py-1 rounded-md">{comments.length} notas</span>
           </div>
-          
           <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-slate-50/50">
             {comments.map(comment => (
               <div key={comment.id} className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
@@ -375,12 +373,10 @@ export default function App() {
                     {comment.author}
                   </span>
                 </div>
-                {/* Utilizando whitespace-pre-line para respetar los saltos de línea de la lista numerada */}
-                <p className="text-sm text-slate-700 leading-relaxed ml-8 whitespace-pre-line">{comment.text}</p>
+                <p className="text-sm text-slate-700 leading-relaxed ml-8 whitespace-pre-line font-medium">{comment.text}</p>
               </div>
             ))}
           </div>
-
           <div className="p-4 bg-white border-t border-slate-200">
             <form onSubmit={handleAddComment} className="flex gap-2">
               <input 
@@ -401,15 +397,108 @@ export default function App() {
             </form>
           </div>
         </div>
-
       </div>
     );
   };
 
+  const renderPFTView = () => {
+    return (
+      <div className="lg:col-span-4 animate-fade-in space-y-6">
+        
+        {/* Banner de Advertencia */}
+        <div className="bg-red-50 border-l-4 border-red-500 p-6 rounded-xl shadow-sm flex items-start gap-4">
+          <div className="bg-red-100 p-3 rounded-full mt-1">
+            <AlertOctagon className="w-8 h-8 text-red-600" />
+          </div>
+          <div>
+            <h2 className="text-2xl font-black text-red-800 tracking-tight">Reporte de Actividades PFT (Planes Fuera de Tiempo)</h2>
+            <p className="text-red-700 mt-2 font-medium">
+              ⚠️ Atención: El sistema ha detectado <strong>{pftTasks.length} actividades</strong> que se encuentran fuera del tiempo planeado o no se han cerrado al 100%. 
+              <br/><br/>
+              <strong>Acción requerida:</strong> Favor de validar el cierre físico de las tareas a la fecha o, en su defecto, coordinar con gerencia para reprogramar la actividad.
+            </p>
+          </div>
+        </div>
+
+        {/* Tabla de Actividades PFT */}
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+          <div className="bg-slate-800 p-4 border-b border-slate-200 flex justify-between items-center">
+             <h3 className="text-white font-bold tracking-widest uppercase text-sm">Listado de Riesgos Detectados</h3>
+             <span className="bg-red-500 text-white text-xs font-bold px-3 py-1 rounded-full">{pftTasks.length} Tareas</span>
+          </div>
+          
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-slate-50 text-[10px] uppercase tracking-widest text-slate-500 border-b border-slate-200">
+                  <th className="p-4 font-black">Frente de Trabajo</th>
+                  <th className="p-4 font-black">Actividad Específica</th>
+                  <th className="p-4 font-black">Responsable</th>
+                  <th className="p-4 font-black text-center">Fecha Fin Esperada</th>
+                  <th className="p-4 font-black text-center">Progreso Actual</th>
+                  <th className="p-4 font-black text-right">Estatus del Sistema</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {pftTasks.length === 0 ? (
+                  <tr>
+                    <td colSpan="6" className="p-8 text-center text-slate-500 font-medium">
+                      ¡Excelente! No hay tareas atrasadas en el sistema en este momento.
+                    </td>
+                  </tr>
+                ) : (
+                  pftTasks.map(task => {
+                    const workType = WORK_TYPES[task.type.toUpperCase()];
+                    const Icon = workType.icon;
+                    return (
+                      <tr key={task.id} className="hover:bg-red-50/30 transition-colors group">
+                        <td className="p-4">
+                          <div className="flex items-center gap-2">
+                            <Icon className={`w-4 h-4 ${workType.color.replace('bg-', 'text-')}`} />
+                            <span className="font-bold text-slate-700 text-xs">{workType.label}</span>
+                          </div>
+                        </td>
+                        <td className="p-4">
+                          <p className="font-bold text-slate-800 text-sm">{task.title}</p>
+                          <p className="text-[10px] text-slate-500 uppercase tracking-widest mt-0.5">{task.subType}</p>
+                        </td>
+                        <td className="p-4 font-semibold text-slate-600 text-xs">{task.assignee}</td>
+                        <td className="p-4 text-center">
+                          <span className="bg-red-100 text-red-700 px-2 py-1 rounded font-bold text-xs">
+                            {formatDate(task.endDate)}
+                          </span>
+                        </td>
+                        <td className="p-4">
+                          <div className="flex flex-col items-center justify-center">
+                            <span className="font-black text-slate-800 text-sm mb-1">{task.progress}%</span>
+                            <div className="w-full max-w-[80px] bg-slate-200 rounded-full h-1.5">
+                              <div className={`h-1.5 rounded-full ${task.progress > 0 ? 'bg-amber-500' : 'bg-red-500'}`} style={{width: `${task.progress}%`}}></div>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="p-4 text-right">
+                          <span className="inline-flex items-center gap-1.5 bg-red-600 text-white text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-md shadow-sm">
+                            <AlertTriangle className="w-3 h-3" />
+                            Vencida
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   let lastSubTypeRendered = null;
 
   return (
-    <div className="min-h-screen bg-[#f1f5f9] p-4 md:p-6 font-sans text-slate-800">
+    <div className="min-h-screen bg-[#f1f5f9] p-4 md:p-6 font-sans text-slate-800 notranslate" translate="no">
+      {/* Se añade translate="no" y className="notranslate" al contenedor principal para blindarlo frente al traductor */}
       <div className="max-w-[1600px] w-[98%] mx-auto space-y-4">
         
         <header className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 relative overflow-hidden">
@@ -421,31 +510,31 @@ export default function App() {
                 <h1 className="text-3xl font-black text-slate-900 tracking-tight">SOFTYS</h1>
                 <span className="px-3 py-1 bg-blue-100 text-blue-800 text-xs font-black uppercase tracking-widest rounded-full">Planta Cañete</span>
               </div>
-              <h2 className="text-xl font-bold text-slate-700">Plan Maestro de Parada (Control Detallado)</h2>
+              <h2 className="text-xl font-bold text-slate-700">GANTT MANTENIMIENTO</h2>
             </div>
             
             <div className="flex gap-4">
               <div className="flex flex-col justify-center items-center px-6 py-4 bg-white rounded-xl border border-slate-200 shadow-sm min-w-[150px]">
                 <span className="block text-3xl font-black text-slate-700 leading-none">
-                  {viewMode === 'resumen' ? INITIAL_TASKS.length : dynamicTotalActivities}
+                  {viewMode === 'resumen' || viewMode === 'pft' ? INITIAL_TASKS.length : dynamicTotalActivities}
                 </span>
                 <span className="text-[11px] font-bold text-slate-500 uppercase tracking-widest mt-2">
-                  Actividades
+                  Actividades Totales
                 </span>
               </div>
               <div className="flex flex-col justify-center items-center px-6 py-4 bg-[#f0fdf4] rounded-xl border border-[#dcfce7] shadow-sm min-w-[170px]">
                 <span className="block text-3xl font-black text-[#166534] leading-none">
-                  {viewMode === 'resumen' ? Math.round(INITIAL_TASKS.reduce((acc, t) => acc + t.progress, 0) / INITIAL_TASKS.length) : dynamicAverageProgress}%
+                  {viewMode === 'resumen' || viewMode === 'pft' ? Math.round(INITIAL_TASKS.reduce((acc, t) => acc + t.progress, 0) / INITIAL_TASKS.length) : dynamicAverageProgress}%
                 </span>
                 <span className="text-[11px] font-bold text-[#166534] uppercase tracking-widest mt-2 truncate max-w-full">
-                  {viewMode === 'resumen' ? 'AVANCE GLOBAL' : progressLabelText}
+                  {viewMode === 'resumen' || viewMode === 'pft' ? 'AVANCE GLOBAL' : progressLabelText}
                 </span>
               </div>
             </div>
           </div>
         </header>
 
-        {/* BARRA DE FILTROS Y BOTÓN DE RESUMEN */}
+        {/* BARRA DE FILTROS Y BOTONES PRINCIPALES */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-3 rounded-xl shadow-sm border border-slate-200">
           <div className="flex flex-wrap gap-2">
             <button 
@@ -469,16 +558,34 @@ export default function App() {
             ))}
           </div>
 
-          <button
-            onClick={() => setViewMode('resumen')}
-            className={`px-5 py-2 rounded-lg text-sm font-black transition-all flex items-center gap-2 border-2
-              ${viewMode === 'resumen' 
-                ? 'bg-blue-50 border-blue-600 text-blue-700 shadow-sm' 
-                : 'bg-white border-slate-200 text-slate-600 hover:border-blue-400 hover:text-blue-600'}`}
-          >
-            <FileText className="w-4 h-4" />
-            VER RESUMEN
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setViewMode('pft')}
+              className={`px-5 py-2 rounded-lg text-sm font-black transition-all flex items-center gap-2 border-2 relative
+                ${viewMode === 'pft' 
+                  ? 'bg-red-50 border-red-600 text-red-700 shadow-sm' 
+                  : 'bg-white border-slate-200 text-slate-600 hover:border-red-400 hover:text-red-600'}`}
+            >
+              <AlertTriangle className="w-4 h-4" />
+              PFT
+              {pftTasks.length > 0 && (
+                <span className="absolute -top-2 -right-2 bg-red-600 text-white text-[10px] w-5 h-5 flex items-center justify-center rounded-full animate-pulse shadow-md">
+                  {pftTasks.length}
+                </span>
+              )}
+            </button>
+
+            <button
+              onClick={() => setViewMode('resumen')}
+              className={`px-5 py-2 rounded-lg text-sm font-black transition-all flex items-center gap-2 border-2
+                ${viewMode === 'resumen' 
+                  ? 'bg-blue-50 border-blue-600 text-blue-700 shadow-sm' 
+                  : 'bg-white border-slate-200 text-slate-600 hover:border-blue-400 hover:text-blue-600'}`}
+            >
+              <FileText className="w-4 h-4" />
+              VER RESUMEN
+            </button>
+          </div>
         </div>
 
         {activeMainFilter !== 'all' && availableSubFilters.length > 0 && viewMode === 'gantt' && (
@@ -601,6 +708,8 @@ export default function App() {
                 {renderTaskDetails()}
               </div>
             </>
+          ) : viewMode === 'pft' ? (
+            renderPFTView()
           ) : (
             renderResumenView()
           )}
